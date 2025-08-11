@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tab Test</title>
+    <style>
+        body { margin: 20px; font-family: Arial; }
+        .test-result { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <h1>Tabbed Settings Interface Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        function addResult(test, passed, details) {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${passed ? '✓ PASS' : '✗ FAIL'} ${details ? '- ' + details : ''}`;
+            results.appendChild(div);
+        }
+        
+        // Test 1: Check if tabs switch properly
+        fetch('http://localhost:8080/')
+            .then(response => response.text())
+            .then(html => {
+                // Check if tab buttons exist
+                const hasAzureTab = html.includes('Azure DevOps</button>');
+                const hasSystemTab = html.includes('System</button>');
+                addResult('Tab buttons exist', hasAzureTab && hasSystemTab, 
+                    `Azure: ${hasAzureTab}, System: ${hasSystemTab}`);
+                
+                // Check if tab content divs exist
+                const hasAzureContent = html.includes('id="azure-devops-tab"');
+                const hasSystemContent = html.includes('id="system-tab"');
+                addResult('Tab content divs exist', hasAzureContent && hasSystemContent, 
+                    `Azure content: ${hasAzureContent}, System content: ${hasSystemContent}`);
+                
+                // Check if switchSettingsTab function exists
+                const hasSwitchFunction = html.includes('function switchSettingsTab');
+                addResult('switchSettingsTab function exists', hasSwitchFunction);
+                
+                // Check if log retention fields exist
+                const hasSystemRetention = html.includes('id="systemLogRetentionDays"');
+                const hasPersonaRetention = html.includes('id="personaLogRetentionDays"');
+                addResult('Log retention fields exist', hasSystemRetention && hasPersonaRetention,
+                    `System: ${hasSystemRetention}, Persona: ${hasPersonaRetention}`);
+                
+                // Check CSS classes
+                const hasTabButtonCSS = html.includes('.tab-button');
+                const hasTabContentCSS = html.includes('.tab-content');
+                addResult('Tab CSS classes exist', hasTabButtonCSS && hasTabContentCSS,
+                    `Button CSS: ${hasTabButtonCSS}, Content CSS: ${hasTabContentCSS}`);
+            })
+            .catch(error => {
+                addResult('Fetch dashboard', false, error.message);
+            });
+    </script>
+</body>
+</html>

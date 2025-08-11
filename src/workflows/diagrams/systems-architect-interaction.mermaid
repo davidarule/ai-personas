@@ -1,0 +1,166 @@
+sequenceDiagram
+    participant PM as Product Manager/<br/>Business Analyst
+    participant EM as Engineering Manager
+    participant SA as Systems Architect<br/>(Simon Bot - AI)
+    participant SWA as Software Architect<br/>(AI Persona)
+    participant CE as Cloud Engineer<br/>(AI Persona)
+    participant Dev as Development Team
+    participant QA as QA Engineer<br/>(AI Persona)
+    participant SecArch as Security Architect<br/>(AI Persona)
+    participant DataArch as Data Architect<br/>(AI Persona)
+    participant ADO as Azure DevOps
+    participant Repo as Architecture<br/>Repository
+    participant Gov as Governance<br/>Board
+    
+    Note over PM, Gov: ARCHITECTURE REQUEST INITIATION
+    
+    alt Epic or Feature Request
+        PM->>ADO: Create Epic/Feature<br/>(Business requirements)
+        ADO->>EM: Assign for technical review
+        EM->>SA: Request architecture design<br/>(WORK_ITEM_ID, TYPE: epic)
+    else System Integration Need
+        Dev->>EM: Integration requirement identified
+        EM->>SA: Request integration architecture<br/>(WORK_ITEM_ID, TYPE: integration)
+    else New System Design
+        EM->>SA: New system design needed<br/>(WORK_ITEM_ID, TYPE: system-design)
+    end
+    
+    rect rgb(240, 248, 255)
+        Note left of SA: REQUIREMENTS ANALYSIS PHASE
+        SA->>ADO: Retrieve work item details
+        ADO-->>SA: Requirements & constraints
+        
+        SA->>Repo: Query existing architectures
+        Repo-->>SA: Current state architecture
+        
+        SA->>SA: Analyze requirements<br/>• Assess complexity<br/>• Identify integration points<br/>• Determine scope
+        
+        SA->>PM: Clarification questions<br/>(Business constraints, priorities)
+        PM-->>SA: Business context provided
+        
+        SA->>EM: Technical constraints review
+        EM-->>SA: Team capabilities, timelines
+    end
+    
+    rect rgb(255, 248, 240)
+        Note left of SA: COLLABORATIVE DESIGN PHASE
+        
+        alt System-Design Workflow
+            SA->>SWA: Collaborate on application architecture
+            SWA->>SWA: Design patterns<br/>Microservices structure<br/>API contracts
+            SWA-->>SA: Application blueprint
+            
+            SA->>CE: Infrastructure requirements
+            CE->>CE: Cloud architecture<br/>Scaling strategy<br/>Network design
+            CE-->>SA: Infrastructure blueprint
+            
+            SA->>SecArch: Security architecture review
+            SecArch->>SecArch: Threat modeling<br/>Security controls<br/>Compliance requirements
+            SecArch-->>SA: Security recommendations
+            
+            SA->>DataArch: Data architecture design
+            DataArch->>DataArch: Data models<br/>Storage strategy<br/>Data flows
+            DataArch-->>SA: Data architecture
+            
+        else Integration Workflow
+            SA->>SWA: Integration patterns needed
+            SWA-->>SA: API specifications
+            
+            SA->>DataArch: Data mapping requirements
+            DataArch->>DataArch: Transform specifications<br/>Data contracts
+            DataArch-->>SA: Integration data model
+            
+            SA->>CE: Network & middleware needs
+            CE-->>SA: Integration infrastructure
+        end
+        
+        SA->>SA: Synthesize designs<br/>• Create unified architecture<br/>• Resolve conflicts<br/>• Optimize design
+    end
+    
+    rect rgb(240, 255, 240)
+        Note left of SA: ARCHITECTURE REVIEW & GOVERNANCE
+        
+        SA->>Repo: Check architecture standards
+        Repo-->>SA: Standards & patterns library
+        
+        SA->>Gov: Submit for architecture review
+        Gov->>Gov: Review board meeting<br/>• Compliance check<br/>• Standards validation<br/>• Risk assessment
+        
+        alt Changes Required
+            Gov-->>SA: Feedback & required changes
+            SA->>SWA: Adjust application design
+            SA->>CE: Modify infrastructure plan
+            SWA-->>SA: Updated design
+            CE-->>SA: Updated plan
+            SA->>Gov: Resubmit revised architecture
+        else Approved
+            Gov-->>SA: Architecture approved ✓
+        end
+        
+        SA->>Repo: Store approved architecture
+        Repo-->>SA: Architecture registered
+    end
+    
+    rect rgb(255, 240, 255)
+        Note left of SA: IMPLEMENTATION PLANNING
+        
+        SA->>SA: Create implementation blueprint<br/>• Deployment diagrams<br/>• Implementation phases<br/>• Dependencies<br/>• Migration plan<br/>• Risk documentation
+        
+        SA->>EM: Review implementation plan
+        EM->>Dev: Feasibility assessment
+        Dev-->>EM: Feedback on approach
+        EM-->>SA: Implementation adjustments
+    end
+    
+    rect rgb(240, 240, 255)
+        Note left of SA: TASK CREATION & HANDOFF
+        
+        SA->>ADO: Create implementation tasks
+        
+        par Parallel Task Creation
+            ADO->>SWA: Task: "Implement system architecture"<br/>Status: Assigned
+            SWA->>SWA: Begin detailed design
+            
+        and
+            ADO->>CE: Task: "Review infrastructure requirements"<br/>Status: Assigned
+            CE->>CE: Validate cloud resources
+            
+        and
+            ADO->>EM: Task: "Validate system design"<br/>Status: Assigned
+            EM->>Dev: Assign validation work
+        end
+        
+        SA->>QA: Architecture test requirements
+        QA->>QA: Create test strategy<br/>• Integration tests<br/>• Performance tests<br/>• Security tests
+        QA-->>SA: Test plan created
+    end
+    
+    rect rgb(255, 255, 240)
+        Note left of SA: ONGOING SUPPORT & GOVERNANCE
+        
+        loop During Implementation
+            Dev->>SA: Architecture clarification needed
+            SA->>SA: Interpret architecture
+            SA-->>Dev: Guidance provided
+            
+            alt Design Issue Found
+                Dev->>SA: Architecture conflict/gap
+                SA->>SWA: Collaborate on solution
+                SWA-->>SA: Resolution proposed
+                SA->>Gov: Minor change approval
+                Gov-->>SA: Change approved
+                SA->>Repo: Update architecture
+                SA-->>Dev: Resolution provided
+            end
+        end
+        
+        SA->>EM: Architecture status updates
+        EM->>PM: Progress on implementation
+        PM->>ADO: Update stakeholders
+    end
+    
+    Note over SA: Architecture Deliverables:<br/>✓ System Design Documents<br/>✓ Integration Architecture<br/>✓ Infrastructure Plan<br/>✓ Implementation Blueprint<br/>✓ Governance Report<br/>✓ Created Tasks for Teams
+    
+    SA-->>EM: Architecture Complete<br/>All artifacts delivered
+    EM-->>PM: Ready for implementation
+    PM-->>ADO: Update work item status

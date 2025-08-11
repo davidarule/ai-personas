@@ -1,0 +1,188 @@
+sequenceDiagram
+    participant PM as Product Manager
+    participant EM as Engineering Manager
+    participant TL as Tech Lead
+    participant SA as Systems Architect<br/>(Simon Bot - AI)
+    participant Dev as Developer/Engineer<br/>(David Bot - AI)
+    participant DevTeam as Other Developers<br/>(Human/AI)
+    participant QA as QA Engineer<br/>(AI Persona)
+    participant SecEng as Security Engineer<br/>(AI Persona)
+    participant DevOps as DevOps Engineer<br/>(AI Persona)
+    participant Reviewer as Code Reviewer
+    participant ADO as Azure DevOps
+    participant Git as Git Repository
+    participant CI as CI/CD Pipeline
+    
+    Note over PM, CI: DEVELOPMENT WORK ASSIGNMENT
+    
+    alt Feature/User Story
+        PM->>ADO: Create User Story<br/>(Requirements, acceptance criteria)
+        ADO->>EM: Assign for implementation
+        EM->>TL: Review and assign developer
+        TL->>Dev: Assign work item<br/>(WORK_ITEM_ID, TYPE: feature)
+    else Bug Fix
+        QA->>ADO: Bug reported<br/>(BUG_ID, reproduction steps)
+        ADO->>TL: Bug assignment
+        TL->>Dev: Fix bug<br/>(WORK_ITEM_ID, TYPE: bug)
+    else Task
+        TL->>Dev: Direct task assignment<br/>(WORK_ITEM_ID, TYPE: task)
+    end
+    
+    rect rgb(240, 248, 255)
+        Note left of Dev: PLANNING & ANALYSIS PHASE
+        
+        Dev->>ADO: Retrieve work item details
+        ADO-->>Dev: Requirements, context, dependencies
+        
+        Dev->>SA: Architecture clarification needed?
+        SA->>SA: Review design documents
+        SA-->>Dev: Architecture guidance<br/>• Patterns to follow<br/>• Integration points<br/>• Constraints
+        
+        Dev->>TL: Technical approach review
+        TL-->>Dev: Approach approved/adjusted
+        
+        Dev->>DevTeam: Check for dependencies<br/>"Anyone working on related code?"
+        DevTeam-->>Dev: Dependency information
+        
+        Dev->>QA: Testing requirements?
+        QA-->>Dev: Test scenarios<br/>Coverage expectations
+    end
+    
+    rect rgb(255, 248, 240)
+        Note left of Dev: IMPLEMENTATION PHASE
+        
+        Dev->>Git: Create feature/bug/task branch
+        Git-->>Dev: Branch created
+        
+        Dev->>Dev: Setup local environment<br/>• Install dependencies<br/>• Configure IDE<br/>• Setup debugging
+        
+        loop Development Iterations
+            Dev->>Dev: Write code<br/>• Business logic<br/>• Error handling<br/>• Logging
+            
+            Dev->>Dev: Write tests<br/>• Unit tests<br/>• Integration tests
+            
+            alt Architecture Question
+                Dev->>SA: Implementation question
+                SA-->>Dev: Pattern guidance
+            end
+            
+            alt Security Concern
+                Dev->>SecEng: Security review needed
+                SecEng->>SecEng: Analyze security implications
+                SecEng-->>Dev: Security recommendations<br/>• Input validation<br/>• Authentication<br/>• Authorization
+            end
+            
+            Dev->>Git: Commit changes
+            Git-->>Dev: Changes saved
+        end
+        
+        Dev->>DevTeam: Informal review<br/>"Can someone look at this?"
+        DevTeam-->>Dev: Feedback provided
+    end
+    
+    rect rgb(240, 255, 240)
+        Note left of Dev: QUALITY ASSURANCE PHASE
+        
+        Dev->>CI: Run local quality checks
+        CI->>CI: Linting<br/>Formatting<br/>Coverage
+        CI-->>Dev: Quality report
+        
+        alt Quality Issues
+            CI-->>Dev: Issues found
+            Dev->>Dev: Fix issues
+            Dev->>CI: Re-run checks
+        end
+        
+        Dev->>QA: Pre-PR test coordination
+        QA->>QA: Review test coverage
+        QA-->>Dev: Additional tests needed?
+        
+        Dev->>SecEng: Security scan
+        SecEng->>CI: Run security tools
+        CI-->>SecEng: Vulnerabilities report
+        SecEng-->>Dev: Security fixes needed
+    end
+    
+    rect rgb(255, 240, 255)
+        Note left of Dev: PULL REQUEST PHASE
+        
+        Dev->>Git: Push branch
+        Git-->>Dev: Branch pushed
+        
+        Dev->>ADO: Create Pull Request
+        ADO->>ADO: PR created<br/>Link to work item<br/>Add description
+        
+        Dev->>TL: PR ready for review
+        TL->>Reviewer: Assign reviewers
+        
+        par Parallel Reviews
+            Reviewer->>Git: Code review
+            Reviewer->>Reviewer: Check logic<br/>Check style<br/>Check patterns
+        and
+            SA->>Git: Architecture review
+            SA->>SA: Verify compliance
+        and
+            QA->>CI: Test verification
+            CI-->>QA: All tests passing
+        and
+            SecEng->>CI: Security validation
+            CI-->>SecEng: No vulnerabilities
+        end
+        
+        alt Changes Requested
+            Reviewer->>Dev: Feedback<br/>• Code improvements<br/>• Bug found<br/>• Style issues
+            Dev->>Dev: Address feedback
+            Dev->>Git: Push updates
+            Dev->>Reviewer: Changes made, please re-review
+        else Approved
+            Reviewer->>ADO: Approve PR ✓
+            SA->>ADO: Architecture approved ✓
+            QA->>ADO: Tests verified ✓
+        end
+    end
+    
+    rect rgb(240, 240, 255)
+        Note left of Dev: INTEGRATION PHASE
+        
+        TL->>ADO: Merge PR
+        ADO->>Git: Merge to main
+        Git->>CI: Trigger build
+        
+        CI->>CI: Build<br/>Test<br/>Package
+        
+        alt Build Success
+            CI-->>Dev: Build successful ✓
+            CI->>DevOps: Deploy to staging
+            DevOps->>DevOps: Deploy application
+            DevOps-->>Dev: Deployment complete
+        else Build Failed
+            CI-->>Dev: Build failed ✗
+            Dev->>Dev: Fix immediately
+            Dev->>Git: Push fix
+        end
+    end
+    
+    rect rgb(255, 255, 240)
+        Note left of Dev: HANDOFF & SUPPORT PHASE
+        
+        Dev->>QA: Ready for testing
+        QA->>QA: Execute test plan
+        
+        alt Bugs Found
+            QA->>Dev: Issues found
+            Dev->>Dev: Fix issues
+            Dev->>QA: Fixed, please retest
+        else Tests Pass
+            QA->>ADO: Testing complete ✓
+        end
+        
+        Dev->>DevOps: Deployment notes<br/>• Configuration changes<br/>• Migration scripts<br/>• Rollback plan
+        
+        Dev->>DevTeam: Knowledge sharing<br/>• Document decisions<br/>• Update wiki<br/>• Team demo
+        
+        Dev->>TL: Work complete
+        TL->>EM: Update status
+        EM->>PM: Feature/bug/task delivered
+    end
+    
+    Note over Dev: Developer Deliverables:<br/>✓ Code implemented<br/>✓ Tests written<br/>✓ Documentation updated<br/>✓ PR approved & merged<br/>✓ Knowledge transferred

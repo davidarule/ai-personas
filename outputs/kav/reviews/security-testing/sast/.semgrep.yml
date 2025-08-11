@@ -1,0 +1,156 @@
+rules:
+  - id: hardcoded-secret
+    pattern-either:
+      - pattern: |
+          $KEY = "..."
+      - pattern: |
+          $KEY = '...'
+    patterns:
+      - pattern-either:
+          - pattern: $KEY = "..."
+          - pattern: $KEY = '...'
+      - metavariable-regex:
+          metavariable: $KEY
+          regex: (password|secret|api_key|apikey|token|jwt_secret)
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: .{8,}
+    message: Hardcoded secret found
+    severity: ERROR
+    languages: [python, javascript, typescript]
+
+  - id: sql-injection
+    patterns:
+      - pattern-either:
+          - pattern: |
+              $QUERY = "... $VAR ..."
+              ...
+              $CURSOR.execute($QUERY)
+          - pattern: |
+              $QUERY = f"... {$VAR} ..."
+              ...
+              $CURSOR.execute($QUERY)
+          - pattern: |
+              $CURSOR.execute("... " + $VAR + " ...")
+      - pattern-not: |
+          $CURSOR.execute("...", ...)
+    message: Potential SQL injection vulnerability
+    severity: ERROR
+    languages: [python]
+
+  - id: xss-vulnerability
+    patterns:
+      - pattern-either:
+          - pattern: |
+              return "<html>..." + $USER_INPUT + "...</html>"
+          - pattern: |
+              render_template_string("... {{ $VAR }} ...", $VAR=$USER_INPUT)
+      - pattern-not: |
+          escape($USER_INPUT)
+    message: Potential XSS vulnerability
+    severity: ERROR
+    languages: [python]
+
+  - id: weak-random
+    pattern-either:
+      - pattern: random.random()
+      - pattern: random.randint(...)
+      - pattern: random.choice(...)
+    patterns:
+      - pattern-either:
+          - pattern: random.random()
+          - pattern: random.randint(...)
+          - pattern: random.choice(...)
+      - pattern-inside:
+          - pattern-either:
+              - pattern: |
+                  def $FUNC(...):
+                      ...
+              - pattern: |
+                  class $CLASS:
+                      ...
+      - metavariable-regex:
+          metavariable: $FUNC
+          regex: (generate_token|create_session|make_password)
+    message: Weak random number generator used for security-sensitive operation
+    severity: WARNING
+    languages: [python]
+
+  - id: path-traversal
+    patterns:
+      - pattern-either:
+          - pattern: open($PATH, ...)
+          - pattern: os.path.join(..., $PATH, ...)
+          - pattern: Path($PATH)
+      - pattern-not: |
+          $SAFE_PATH = os.path.basename($PATH)
+          ...
+          open($SAFE_PATH, ...)
+    message: Potential path traversal vulnerability
+    severity: ERROR
+    languages: [python]
+
+  - id: insecure-deserialization
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: yaml.load(..., Loader=yaml.Loader)
+      - pattern: eval(...)
+      - pattern: exec(...)
+    message: Insecure deserialization
+    severity: ERROR
+    languages: [python]
+
+  - id: missing-auth-check
+    patterns:
+      - pattern: |
+          @app.route(...)
+          def $FUNC(...):
+              ...
+      - pattern-not: |
+          @app.route(...)
+          @login_required
+          def $FUNC(...):
+              ...
+      - pattern-not: |
+          @app.route(...)
+          @requires_auth
+          def $FUNC(...):
+              ...
+      - metavariable-regex:
+          metavariable: $ROUTE
+          regex: (admin|user|profile|settings|api)
+    message: Missing authentication check on sensitive route
+    severity: WARNING
+    languages: [python]
+
+  - id: jwt-none-algorithm
+    patterns:
+      - pattern: jwt.decode($TOKEN, ..., algorithms=[..., "none", ...])
+    message: JWT none algorithm enabled - authentication bypass vulnerability
+    severity: ERROR
+    languages: [python]
+
+  - id: cors-misconfiguration
+    patterns:
+      - pattern-either:
+          - pattern: |
+              CORS(..., origins="*", ...)
+          - pattern: |
+              Access-Control-Allow-Origin: *
+    message: CORS misconfiguration - accepts all origins
+    severity: WARNING
+    languages: [python, javascript]
+
+  - id: command-injection
+    patterns:
+      - pattern-either:
+          - pattern: os.system($CMD)
+          - pattern: subprocess.call($CMD, shell=True)
+          - pattern: subprocess.run($CMD, shell=True)
+      - pattern-not: |
+          $SAFE_CMD = shlex.quote($CMD)
+          ...
+          os.system($SAFE_CMD)
+    message: Potential command injection vulnerability
+    severity: ERROR
+    languages: [python]

@@ -1,0 +1,137 @@
+sequenceDiagram
+    participant User
+    participant SA as Systems Architect<br/>(Simon Bot)
+    participant Analyzer as Requirements<br/>Analyzer
+    participant Router as Workflow<br/>Router
+    participant Factory as Factory Settings<br/>(wf15)
+    participant PRReview as PR Review<br/>(wf6)
+    participant Design as System<br/>Design
+    participant Integration as Integration<br/>Architecture
+    participant Infra as Infrastructure<br/>Planning
+    participant Gov as Architecture<br/>Governance
+    participant ADO as Azure DevOps<br/>Task Creation
+
+    User->>SA: Request Architecture Work<br/>(WORK_ITEM_ID, TYPE: [task|bug|feature|epic|system-design|integration], ACTION)
+    
+    Note over SA: Prerequisites Check<br/>✓ Access to work item<br/>✓ Enterprise architecture repository<br/>✓ System documentation access
+    
+    Note over SA: Analyze System Requirements
+    SA->>Analyzer: Assess Work Item<br/>(ID: WORK_ITEM_ID)
+    Analyzer->>Analyzer: Assess system complexity
+    Analyzer->>Analyzer: Identify integration points
+    Analyzer->>Analyzer: Determine recommended action
+    
+    alt Work Type: system-design
+        Analyzer-->>SA: ACTION: design-system-architecture<br/>COMPLEXITY: [high|medium|low]<br/>INTEGRATION_POINTS: [list]
+    else Work Type: integration
+        Analyzer-->>SA: ACTION: design-integration<br/>INTEGRATION_POINTS: [list]
+    else Work Type: epic
+        Analyzer-->>SA: ACTION: enterprise-architecture-review
+    else Other Types
+        Analyzer-->>SA: ACTION: standard-architecture-work
+    end
+    
+    Note over SA: Route to Appropriate Workflow
+    SA->>Router: Execute based on ACTION
+    
+    alt ACTION: design-system-architecture
+        Note over Router: System Architecture Design Path
+        Router->>Design: Create system blueprint
+        Design->>Design: Design component architecture
+        Design->>Design: Define interfaces
+        Design->>Design: Establish standards
+        Design-->>Router: Blueprint created
+        
+        Router->>Factory: Lookup Architecture Standards<br/>(wf15-factory-settings-lookup)
+        Factory-->>Router: Return standards & patterns
+        
+        Router->>SA: Initiate Detailed Design
+        SA->>Design: Create Detailed System Design
+        Design->>Design: Design system components
+        Design->>Design: Define system boundaries
+        Design->>Design: Specify hardware requirements
+        Design->>Design: Design network topology
+        Design->>Design: Plan scalability
+        Design-->>SA: SYSTEM_DESIGN complete
+        
+    else ACTION: design-integration
+        Note over Router: Integration Architecture Path
+        Router->>Integration: Map integration points
+        Integration->>Integration: Design data flows
+        Integration->>Integration: Define protocols
+        Integration->>Integration: Establish SLA
+        Integration-->>Router: Integration mapped
+        
+        Router->>SA: Initiate Integration Architecture
+        SA->>Integration: Create Integration Design
+        Integration->>Integration: Design API architecture
+        Integration->>Integration: Define message formats
+        Integration->>Integration: Establish integration patterns
+        Integration->>Integration: Design middleware layer
+        Integration->>Integration: Create data mapping
+        Integration-->>SA: INTEGRATION_DESIGN complete
+        
+    else ACTION: enterprise-architecture-review
+        Note over Router: Enterprise Review Path
+        Router->>PRReview: Execute PR Review<br/>(wf6-pull-request-review)
+        PRReview->>PRReview: Architecture review type
+        PRReview->>PRReview: Check compliance
+        PRReview->>PRReview: Validate standards
+        PRReview-->>Router: Review complete
+        
+        Router->>SA: Initiate Enterprise Architecture
+        SA->>Design: Enterprise Architecture Activities
+        Design->>Design: Assess current state
+        Design->>Design: Define target state
+        Design->>Design: Identify architecture gaps
+        Design->>Design: Create roadmap
+        Design->>Design: Define governance model
+        Design-->>SA: ENTERPRISE_ARCHITECTURE complete
+        
+    else ACTION: standard-architecture-work
+        Note over Router: Standard Architecture Path
+        Router->>SA: Execute standard processes
+    end
+    
+    Note over SA: Infrastructure Planning
+    SA->>Infra: Plan Infrastructure Requirements
+    Infra->>Infra: Calculate capacity requirements
+    Infra->>Infra: Design server architecture
+    Infra->>Infra: Plan storage architecture
+    Infra->>Infra: Design network infrastructure
+    Infra->>Infra: Plan disaster recovery
+    Infra-->>SA: INFRASTRUCTURE_PLAN complete
+    
+    Note over SA: Architecture Governance
+    SA->>Gov: Apply Architecture Governance
+    Gov->>Gov: Review compliance
+    Gov->>Gov: Enforce standards
+    Gov->>Gov: Manage technical debt
+    Gov->>Gov: Update architecture repository
+    Gov->>Gov: Conduct architecture review
+    Gov-->>SA: GOVERNANCE_REPORT complete
+    
+    Note over SA: Create Implementation Blueprint
+    SA->>Design: Generate Implementation Blueprint
+    Design->>Design: Create deployment diagrams
+    Design->>Design: Define implementation phases
+    Design->>Design: Specify dependencies
+    Design->>Design: Create migration plan
+    Design->>Design: Document risks
+    Design-->>SA: IMPLEMENTATION_BLUEPRINT complete
+    
+    Note over SA: Create Architecture Tasks
+    SA->>ADO: Create Work Items
+    ADO->>ADO: Task: "Implement system architecture"<br/>Assigned: software-architect
+    ADO->>ADO: Task: "Review infrastructure requirements"<br/>Assigned: cloud-engineer
+    ADO->>ADO: Task: "Validate system design"<br/>Assigned: engineering-manager
+    ADO-->>SA: Tasks created
+    
+    alt Success
+        SA-->>User: Architecture Work Complete<br/>RESULT: Success<br/>SYSTEM_DESIGN: [documents]<br/>INTEGRATION_DESIGN: [architecture]<br/>ARTIFACTS: [generated items]
+        Note over User: Deliverables:<br/>✓ System architecture designed<br/>✓ Integration points defined<br/>✓ Infrastructure planned<br/>✓ Governance applied<br/>✓ Implementation blueprint created
+    else Error Occurred
+        Note over SA: Error Handling (continue-on-error)
+        SA->>SA: Log error message
+        SA-->>User: Partial completion<br/>(Error logged, continuing with available results)
+    end

@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "/usr/bin/npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/home/davidarule/ai-personas"
+      ]
+    },
+    "serena": {
+      "command": "/home/davidarule/.local/bin/uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "/home/davidarule/ai-personas"
+      ]
+    },
+    "memory-bank": {
+      "command": "/usr/bin/npx",
+      "args": [
+        "-y",
+        "mcp-memory-bank"
+      ],
+      "env": {
+        "MEMORY_BANK_DIR": "/home/davidarule/ai-personas/memory-bank"
+      }
+    },
+    "nova": {
+      "command": "/usr/bin/npx",
+      "args": [
+        "-y",
+        "@nova-mcp/mcp-nova"
+      ],
+      "env": {
+        "NOVA_DATA_DIR": "/home/davidarule/ai-personas/.mcp/nova"
+      }
+    }
+  }
+}

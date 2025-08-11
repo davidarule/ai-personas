@@ -1,0 +1,119 @@
+id: trivia-app-security-checks
+info:
+  name: Trivia App Security Checks
+  author: Kav
+  severity: high
+  description: Custom security checks for Trivia application
+  tags: trivia,api,security
+
+requests:
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/users/{{rand_int(1, 1000)}}"
+      - "{{BaseURL}}/api/admin/users"
+      - "{{BaseURL}}/api/internal/debug"
+      - "{{BaseURL}}/.git/config"
+      - "{{BaseURL}}/.env"
+      - "{{BaseURL}}/backup.sql"
+      
+    matchers-condition: or
+    matchers:
+      - type: status
+        status:
+          - 200
+        condition: and
+        part: header
+        
+      - type: word
+        words:
+          - "password"
+          - "secret"
+          - "api_key"
+          - "token"
+        part: body
+        condition: or
+        
+      - type: regex
+        regex:
+          - "(?i)(password|passwd|pwd)\s*[:=]\s*['"][^'"]{8,}['"]"
+          - "(?i)(api[_-]?key|apikey)\s*[:=]\s*['"][^'"]{8,}['"]"
+          - "[a-zA-Z0-9]{40}"  # Generic API key pattern
+        part: body
+
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/auth/login"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "email": "{{username}}",
+        "password": "{{password}}"
+      }
+      
+    attack: clusterbomb
+    payloads:
+      username:
+        - "admin@trivia.com"
+        - "test@test.com"
+        - "' OR '1'='1"
+        - "admin'--"
+      password:
+        - "password"
+        - "123456"
+        - "admin"
+        - "' OR '1'='1"
+        
+    matchers:
+      - type: word
+        words:
+          - "access_token"
+          - "jwt"
+        condition: and
+        part: body
+        
+  - method: POST
+    path:
+      - "{{BaseURL}}/api/auth/register"
+    headers:
+      Content-Type: application/json
+    body: |
+      {
+        "email": "test{{rand_int(1000, 9999)}}@test.com",
+        "password": "{{password}}",
+        "username": "testuser{{rand_int(1000, 9999)}}"
+      }
+      
+    payloads:
+      password:
+        - "123"
+        - "password"
+        - "12345"
+        - "qwerty"
+        
+    matchers:
+      - type: status
+        status:
+          - 201
+        name: weak-password-accepted
+        
+  - method: GET
+    path:
+      - "{{BaseURL}}/api/search?q={{query}}"
+      
+    payloads:
+      query:
+        - "<script>alert(1)</script>"
+        - "javascript:alert(1)"
+        - "<img src=x onerror=alert(1)>"
+        - "';alert(1);//"
+        
+    matchers:
+      - type: word
+        words:
+          - "<script>alert(1)</script>"
+          - "javascript:alert"
+          - "onerror=alert"
+        part: body
+        condition: or
+        name: reflected-xss

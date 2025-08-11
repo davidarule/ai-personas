@@ -1,0 +1,184 @@
+sequenceDiagram
+    participant PM as Product Manager
+    participant Dev as Developer (AI)
+    participant QA as QA/Test Engineer<br/>(Quinn Bot - AI)
+    participant Feature as Feature Workflow<br/>(wf0 - 2-5 days)
+    participant Bug as Bug Fix Workflow<br/>(wf1 - 1-3 days)
+    participant Hotfix as Hotfix Workflow<br/>(wf2 - 4 hours)
+    participant SecEng as Security Engineer<br/>(AI)
+    participant PerfEng as Performance Engineer<br/>(AI)
+    participant DevOps as DevOps Engineer<br/>(AI)
+    participant Support as Support Team
+    participant ADO as Azure DevOps
+    participant CI as CI/CD Pipeline
+    
+    Note over PM, CI: QA INTEGRATION ACROSS MASTER WORKFLOWS
+    
+    Note over Feature: === FEATURE TESTING INTEGRATION (wf0) ===
+    
+    PM->>Feature: Feature requirements defined
+    Feature->>Dev: Development in progress
+    
+    Note over QA: EARLY ENGAGEMENT (Day 1)
+    Dev->>QA: Share technical design
+    QA->>QA: Review requirements<br/>Create test strategy<br/>Design test cases
+    Feature->>QA: Feature branch created
+    QA->>CI: Setup test automation
+    
+    Note over QA: CONTINUOUS TESTING (Days 2-4)
+    Dev->>Feature: Code commits
+    Feature->>CI: Trigger builds
+    CI->>QA: Build ready for testing
+    
+    QA->>CI: Run automated tests<br/>- Unit tests<br/>- Integration tests
+    CI-->>QA: Test results
+    
+    alt Tests Fail
+        QA->>Dev: Early feedback<br/>Issues found
+        Dev->>Dev: Fix issues
+        Dev-->>QA: Fixed, please retest
+        QA->>CI: Rerun tests
+    else Tests Pass
+        QA->>Feature: Tests passing
+    end
+    
+    Note over QA: FEATURE COMPLETE TESTING (Day 4-5)
+    Feature->>QA: Feature ready for full testing
+    
+    QA->>QA: Functional testing<br/>- Happy paths<br/>- Edge cases<br/>- Error scenarios
+    QA->>SecEng: Security scan needed
+    SecEng->>SecEng: OWASP scan<br/>Vulnerability check
+    SecEng-->>QA: Security report
+    QA->>PerfEng: Performance test
+    PerfEng->>PerfEng: Load testing<br/>Response times
+    PerfEng-->>QA: Performance metrics
+    
+    QA->>QA: Exploratory testing<br/>Usability verification
+    
+    alt All Tests Pass
+        QA->>Feature: QA Sign-off
+        Feature->>Feature: Merge to main
+        QA->>DevOps: Ready for deployment
+        Feature->>Feature: Deploy to production
+        QA->>QA: Production smoke tests
+        QA-->>Feature: Production verified
+    else Critical Issues
+        QA->>ADO: Log defects
+        QA->>Feature: QA Blocked
+        Feature->>Dev: Fix critical issues
+        Dev->>QA: Fixes ready
+        QA->>QA: Retest cycle
+    end
+    
+    QA-->>Feature: Feature tested<br/>Time: 30-40% of cycle
+    
+    Note over Bug: === BUG FIX VERIFICATION (wf1) ===
+    
+    Support->>ADO: Bug reported by customer
+    ADO->>Bug: Bug assigned
+    
+    Note over QA: BUG REPRODUCTION (Hour 1)
+    Bug->>QA: Verify bug exists
+    QA->>QA: Follow reproduction steps<br/>Document behavior<br/>Capture screenshots
+    
+    alt Bug Reproduced
+        QA->>Bug: Bug confirmed<br/>Steps documented
+        Bug->>Dev: Fix bug
+    else Cannot Reproduce
+        QA->>Support: Cannot reproduce<br/>Need more info
+        Support->>Support: Get details
+        Support-->>QA: Additional info
+        QA->>QA: Retry reproduction
+    end
+    
+    Note over QA: FIX VERIFICATION (Hours 4-8)
+    Dev->>Bug: Fix implemented
+    Bug->>QA: Ready to verify fix
+    
+    QA->>QA: Verify fix<br/>- Bug no longer occurs<br/>- No regression<br/>- Related features work
+    
+    QA->>CI: Run regression suite
+    CI-->>QA: Regression results
+    QA->>QA: Test edge cases<br/>Around fix area
+    
+    alt P1 Bug Critical
+        Note over QA: FAST-TRACK VERIFICATION
+        QA->>QA: Priority testing (2hr SLA)<br/>- Core functionality only<br/>- Critical paths
+        QA->>Bug: Expedited sign-off
+        Bug->>Bug: Emergency merge
+    else P2 or P3 Bug
+        QA->>QA: Standard verification<br/>Full regression testing
+    end
+    
+    alt Fix Verified
+        QA->>Bug: Fix verified
+        Bug->>Bug: Merge fix
+        QA->>Support: Bug resolved
+    else Fix Incomplete
+        QA->>Dev: Fix doesn't work
+        Dev->>Dev: Re-analyze
+        Dev->>QA: New fix ready
+        QA->>QA: Retest
+    end
+    
+    QA-->>Bug: Bug verified<br/>Time: 4-8 hours
+    
+    Note over Hotfix: === HOTFIX VALIDATION (wf2) - EMERGENCY ===
+    
+    Support->>Hotfix: Critical incident
+    Hotfix->>QA: EMERGENCY - Join war room
+    
+    Note over QA: IMMEDIATE RESPONSE (15 min)
+    QA->>QA: Drop everything<br/>Join war room
+    QA->>CI: Identify failing tests
+    QA->>Support: Get user impact
+    
+    QA->>Hotfix: Ready to support<br/>Impact assessment ready
+    
+    Note over QA: RAPID VALIDATION (30 min)
+    Dev->>Hotfix: Emergency fix ready
+    Hotfix->>QA: Validate fix NOW
+    
+    QA->>CI: Run smoke tests ONLY<br/>- Critical paths<br/>- Core functionality
+    CI-->>QA: Smoke tests PASS
+    
+    QA->>QA: Manual verification<br/>- Fix resolves issue<br/>- No obvious breaks
+    
+    Note over QA: RISK ASSESSMENT (5 min)
+    QA->>QA: Quick risk check<br/>- Related features<br/>- Integration points
+    
+    alt Acceptable Risk
+        QA->>Hotfix: Fix validated<br/>Ready to deploy
+        Hotfix->>Hotfix: DEPLOY NOW
+    else High Risk
+        QA->>Hotfix: Risk too high<br/>Recommend rollback
+        Hotfix->>Hotfix: Rollback instead
+    end
+    
+    Note over QA: POST-DEPLOYMENT (1 hour)
+    Hotfix->>QA: Deployed to production
+    
+    QA->>CI: Production validation<br/>- Incident resolved<br/>- System stable
+    
+    QA->>CI: Check metrics
+    CI-->>QA: System health
+    
+    alt New Issues Detected
+        QA->>Hotfix: NEW ISSUE
+        Hotfix->>Hotfix: ROLLBACK
+    else System Stable
+        QA->>QA: Continue monitoring
+    end
+    
+    QA->>ADO: Create test case<br/>For this incident
+    QA->>ADO: Add to regression
+    
+    QA-->>Hotfix: Emergency validated<br/>Time: Less than 2 hours
+    
+    Note over QA: === QA METRICS ACROSS WORKFLOWS ===
+    
+    QA->>ADO: Quality Metrics Dashboard
+    
+    QA->>PM: Quality report<br/>- Features: 95% coverage<br/>- Bugs: 4hr avg<br/>- Hotfixes: 100% under 2hr
+    
+    Note over QA: QA Summary:<br/>FEATURE: Full test lifecycle (30-40%)<br/>BUG: Focused verification (4-8 hrs)<br/>HOTFIX: Emergency validation (under 2 hrs)

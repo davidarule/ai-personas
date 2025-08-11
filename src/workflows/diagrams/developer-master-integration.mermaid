@@ -1,0 +1,209 @@
+sequenceDiagram
+    participant PM as Product Manager
+    participant TL as Tech Lead
+    participant Dev as Developer/Engineer<br/>(David Bot - AI)
+    participant Feature as Feature Workflow<br/>(wf0 - 2-5 days)
+    participant Bug as Bug Fix Workflow<br/>(wf1 - 1-3 days)
+    participant Hotfix as Hotfix Workflow<br/>(wf2 - 4 hours)
+    participant SA as Systems Architect<br/>(AI)
+    participant QA as QA Engineer<br/>(AI)
+    participant Reviewer as Code Reviewer
+    participant ADO as Azure DevOps
+    participant CI as CI/CD Pipeline
+    
+    Note over PM, CI: DEVELOPER INTEGRATION ACROSS MASTER WORKFLOWS
+    
+    rect rgb(240, 248, 255)
+        Note over Feature: FEATURE DEVELOPMENT INTEGRATION (wf0)
+        
+        PM->>ADO: Create Feature Request
+        ADO->>TL: Assign feature work
+        TL->>Dev: Assign development task<br/>(FEATURE_ID, TYPE: feature)
+        
+        Note over Dev: FEATURE DEVELOPMENT CYCLE
+        Feature->>Dev: Initialize feature development
+        
+        Dev->>Dev: Analyze requirements<br/>Plan implementation approach
+        Dev->>SA: Request architecture guidance
+        SA-->>Dev: Design patterns, constraints
+        
+        Feature->>Dev: Create feature branch (wf3)
+        Dev->>Dev: Setup local environment<br/>Install dependencies
+        
+        Note over Dev: ITERATIVE DEVELOPMENT (2-5 days)
+        loop Development Iterations
+            Dev->>Dev: Implement feature code<br/>• Business logic<br/>• UI components<br/>• API endpoints
+            
+            Dev->>Dev: Write unit tests<br/>• Test coverage >80%<br/>• Edge cases
+            
+            Dev->>CI: Run local tests
+            CI-->>Dev: Test results
+            
+            alt Tests Fail
+                Dev->>Dev: Fix failing tests
+            else Tests Pass
+                Dev->>Feature: Commit changes (wf4)
+            end
+            
+            Feature->>Feature: Check PR readiness (wf13)
+            
+            alt Not Ready
+                Feature-->>Dev: Continue development
+            else Ready
+                Feature-->>Dev: Ready for PR
+            end
+        end
+        
+        Dev->>Feature: Create Pull Request (wf5)
+        Feature->>Reviewer: Assign reviewers
+        
+        loop Review Cycle
+            Reviewer->>Dev: Code review feedback
+            Dev->>Dev: Address feedback
+            Dev->>Feature: Push updates
+        end
+        
+        Feature->>Feature: Merge (wf8)
+        Dev->>QA: Handoff for testing
+        QA->>Dev: Test results
+        
+        alt Issues Found
+            QA->>Dev: Bugs reported
+            Dev->>Dev: Fix issues
+        else All Tests Pass
+            Feature->>Feature: Deploy
+            Dev->>ADO: Update documentation
+        end
+        
+        Dev-->>Feature: Feature complete<br/>Time: 2-5 days
+    end
+    
+    rect rgb(255, 248, 240)
+        Note over Bug: BUG FIX INTEGRATION (wf1)
+        
+        QA->>ADO: Bug reported<br/>(BUG_ID, SEVERITY)
+        ADO->>TL: Bug assignment
+        TL->>Dev: Fix bug<br/>(BUG_ID, TYPE: bug)
+        
+        Note over Dev: BUG FIX PROCESS
+        Bug->>Dev: Initialize bug fix
+        
+        Dev->>Dev: Reproduce bug<br/>Analyze root cause
+        
+        alt Architecture Issue
+            Dev->>SA: Is this a design flaw?
+            SA->>SA: Analyze architecture
+            SA-->>Dev: Root cause: [design/implementation]
+        end
+        
+        Bug->>Dev: Create bug fix branch (wf3)
+        
+        Note over Dev: FIX IMPLEMENTATION (1-3 days)
+        Dev->>Dev: Debug code<br/>Identify exact issue
+        Dev->>Dev: Implement fix<br/>Minimal change approach
+        Dev->>Dev: Write regression test<br/>Ensure bug doesn't return
+        
+        Dev->>CI: Verify fix locally
+        CI-->>Dev: Tests passing
+        
+        Bug->>Dev: Commit fix (wf4)
+        
+        alt P1 Bug
+            Dev->>Bug: Emergency PR (wf5)
+            Bug->>Reviewer: Fast-track review
+            Reviewer-->>Bug: Approved (2hr SLA)
+        else P2/P3 Bug
+            Dev->>Bug: Standard PR (wf5)
+            Bug->>Reviewer: Normal review
+        end
+        
+        Bug->>Bug: Merge fix (wf8)
+        
+        Dev->>QA: Verify bug fixed
+        QA->>QA: Test in production
+        
+        alt Bug Still Exists
+            QA->>Dev: Bug not fixed
+            Dev->>Dev: Re-analyze
+        else Bug Fixed
+            QA->>ADO: Close bug
+            Dev->>ADO: Document fix
+        end
+        
+        Dev-->>Bug: Bug resolved<br/>Time: 1-3 days
+    end
+    
+    rect rgb(255, 240, 240)
+        Note over Hotfix: HOTFIX INTEGRATION (wf2) - EMERGENCY
+        
+        Note over Hotfix: 🚨 P1 INCIDENT - PRODUCTION DOWN 🚨
+        
+        ADO->>Hotfix: Critical incident<br/>(INCIDENT_ID)
+        Hotfix->>TL: Emergency assignment
+        TL->>Dev: DROP EVERYTHING<br/>Join war room
+        
+        Note over Dev: EMERGENCY RESPONSE (4 hour SLA)
+        
+        par Immediate Actions
+            Dev->>Dev: Join war room
+            Dev->>Hotfix: Ready to fix
+        and
+            Hotfix->>SA: Architecture assessment
+            SA-->>Hotfix: Impact analysis
+        end
+        
+        Note over Dev: RAPID DIAGNOSIS (15 min)
+        Dev->>Dev: Analyze logs<br/>Identify failure point
+        Dev->>SA: Proposed fix approach
+        SA-->>Dev: Approved - minimal risk
+        
+        Hotfix->>Dev: Create hotfix branch
+        
+        Note over Dev: EMERGENCY FIX (30 min)
+        Dev->>Dev: Implement minimal fix<br/>• Surgical change only<br/>• No refactoring<br/>• Focus on stability
+        
+        Dev->>CI: Run critical tests only
+        CI-->>Dev: Smoke tests pass
+        
+        Hotfix->>Dev: Emergency commit<br/>(bypass hooks)
+        
+        Note over Dev: FAST-TRACK DEPLOYMENT
+        Dev->>Hotfix: Create emergency PR
+        Hotfix->>TL: Emergency approval needed
+        TL->>Hotfix: APPROVED - Deploy NOW
+        
+        Hotfix->>Hotfix: Direct to production<br/>(skip staging)
+        
+        Note over Dev: VERIFICATION (1 hour)
+        Dev->>Dev: Monitor metrics<br/>Verify fix working
+        
+        alt Fix Successful
+            Dev->>ADO: Incident resolved
+            Dev->>Dev: Document emergency changes
+            Dev->>ADO: Create technical debt ticket<br/>"Clean up hotfix INCIDENT_ID"
+        else Fix Failed
+            Dev->>Hotfix: Fix unsuccessful
+            Hotfix->>Hotfix: ROLLBACK
+            Dev->>Dev: Try alternative approach
+        end
+        
+        Dev-->>Hotfix: Incident resolved<br/>Time: < 4 hours
+        
+        Note over Dev: POST-INCIDENT
+        Dev->>SA: Update architecture docs
+        Dev->>QA: Create test for incident
+        Dev->>ADO: Post-mortem report
+    end
+    
+    rect rgb(240, 255, 240)
+        Note over Dev: DEVELOPER METRICS ACROSS WORKFLOWS
+        
+        Dev->>ADO: Development Metrics Dashboard
+        
+        Note right of Dev: Tracking:<br/>• Feature: Lines of code, test coverage<br/>• Bug: Time to fix, root cause types<br/>• Hotfix: Response time, fix success rate<br/>• Code quality scores<br/>• PR approval times<br/>• Rework percentage
+        
+        Dev->>TL: Weekly status report
+        TL->>PM: Development velocity
+    end
+    
+    Note over Dev: Developer Integration Summary:<br/>FEATURE: Full development lifecycle (2-5 days)<br/>BUG: Focused debugging & fixing (1-3 days)<br/>HOTFIX: Emergency response & minimal fix (< 4 hours)

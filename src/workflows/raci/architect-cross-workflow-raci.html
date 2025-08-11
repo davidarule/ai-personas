@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systems Architect Cross-Workflow RACI Matrix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #6b46c1 0%, #2563eb 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #6b46c1 0%, #2563eb 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.95;
+            font-size: 14px;
+        }
+        
+        .workflow-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 8px;
+        }
+        
+        .workflow-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        
+        .feature-badge { background: #10b981; }
+        .bug-badge { background: #f59e0b; }
+        .hotfix-badge { background: #ef4444; }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-box {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .responsible { background: #28a745; }
+        .accountable { background: #dc3545; }
+        .consulted { background: #ffc107; color: #333; }
+        .informed { background: #17a2b8; }
+        
+        .matrix-wrapper {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+        
+        th.workflow-header {
+            background: #6b46c1;
+            color: white;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        th.workflow-header.feature { background: #10b981; }
+        th.workflow-header.bug { background: #f59e0b; }
+        th.workflow-header.hotfix { background: #ef4444; }
+        
+        th.role-header {
+            text-align: center;
+            background: #e9ecef;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            min-width: 40px;
+            max-width: 40px;
+            height: 100px;
+            padding: 8px 2px;
+            font-size: 11px;
+        }
+        
+        th.architect-header {
+            background: #6b46c1;
+            color: white;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        td.activity-cell {
+            text-align: left;
+            font-weight: 500;
+            background: #fafbfc;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            min-width: 320px;
+        }
+        
+        td.sub-activity {
+            padding-left: 30px;
+            font-weight: 400;
+            font-size: 12px;
+            color: #495057;
+        }
+        
+        .role-indicator {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 11px;
+            margin: 0 auto;
+        }
+        
+        tbody tr:hover {
+            background: #f1f3f5;
+        }
+        
+        tbody tr:hover td.activity-cell {
+            background: #e9ecef;
+        }
+        
+        .workflow-separator {
+            border-top: 4px solid #6b46c1;
+        }
+        
+        .workflow-label {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+            color: white;
+        }
+        
+        .ai-indicator {
+            display: inline-block;
+            background: #8b5cf6;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .notes {
+            margin: 20px;
+            padding: 20px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #2563eb;
+        }
+        
+        .notes h3 {
+            margin: 0 0 10px 0;
+            color: #1e40af;
+            font-size: 16px;
+        }
+        
+        .notes ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .notes li {
+            margin: 5px 0;
+            color: #495057;
+        }
+        
+        .insights {
+            margin: 20px;
+            padding: 20px;
+            background: #f3e8ff;
+            border-radius: 8px;
+            border-left: 4px solid #8b5cf6;
+        }
+        
+        .insights h3 {
+            margin: 0 0 10px 0;
+            color: #6b21a8;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ Systems Architect - Cross-Workflow RACI Matrix</h1>
+            <p>Architectural Responsibilities Across Feature Development, Bug Fix, and Hotfix Workflows</p>
+        </div>
+        
+        <div class="workflow-indicators">
+            <div class="workflow-badge">
+                <span class="badge feature-badge">FEATURE</span>
+                <span>2-5 days | Full architecture lifecycle</span>
+            </div>
+            <div class="workflow-badge">
+                <span class="badge bug-badge">BUG FIX</span>
+                <span>1-3 days | Impact analysis</span>
+            </div>
+            <div class="workflow-badge">
+                <span class="badge hotfix-badge">HOTFIX</span>
+                <span>4 hours | Emergency support</span>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box responsible">R</div>
+                <span><strong>Responsible:</strong> Does the work</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box accountable">A</div>
+                <span><strong>Accountable:</strong> Ultimately answerable</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box consulted">C</div>
+                <span><strong>Consulted:</strong> Provides input</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box informed">I</div>
+                <span><strong>Informed:</strong> Kept updated</span>
+            </div>
+        </div>
+        
+        <div class="matrix-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Architecture Activity / Phase</th>
+                        <th class="role-header architect-header">Systems Architect (AI)</th>
+                        <th class="role-header">Software Architect (AI)</th>
+                        <th class="role-header">Cloud Engineer (AI)</th>
+                        <th class="role-header">Security Architect (AI)</th>
+                        <th class="role-header">Data Architect (AI)</th>
+                        <th class="role-header">Product Manager</th>
+                        <th class="role-header">Engineering Manager</th>
+                        <th class="role-header">Tech Lead</th>
+                        <th class="role-header">Developer</th>
+                        <th class="role-header">QA Engineer (AI)</th>
+                        <th class="role-header">Code Reviewer</th>
+                        <th class="role-header">Emergency Approver</th>
+                        <th class="role-header">Governance Board</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- FEATURE WORKFLOW -->
+                    <tr>
+                        <td colspan="14" class="workflow-header feature">FEATURE DEVELOPMENT WORKFLOW (wf0)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Requirements Analysis <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Complexity assessment <span class="ai-indicator">AI</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Integration points identification <span class="ai-indicator">AI</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">System Design <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Infrastructure Planning <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Architecture Governance Review <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Implementation Blueprint Creation <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Development Support (During Coding) <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Architecture Compliance Review (PR) <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Architecture Documentation Update <span class="workflow-label feature-badge">FEATURE</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    
+                    <!-- BUG FIX WORKFLOW -->
+                    <tr class="workflow-separator">
+                        <td colspan="14" class="workflow-header bug">BUG FIX WORKFLOW (wf1)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Root Cause Analysis <span class="workflow-label bug-badge">BUG</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Design vs Implementation issue <span class="ai-indicator">AI</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Fix Impact Assessment <span class="workflow-label bug-badge">BUG</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Fix Architecture Validation <span class="workflow-label bug-badge">BUG</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Emergency Review (P1 Only) <span class="workflow-label bug-badge">BUG</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Systemic Issue Identification <span class="workflow-label bug-badge">BUG</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    
+                    <!-- HOTFIX WORKFLOW -->
+                    <tr class="workflow-separator">
+                        <td colspan="14" class="workflow-header hotfix">HOTFIX WORKFLOW (wf2) - EMERGENCY</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">War Room Participation <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Rapid Architecture Assessment (15 min) <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Rollback Decision Support <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Emergency Fix Validation (30 min) <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Emergency Override Approval <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Post-Incident Architecture Review <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Technical Debt Documentation <span class="workflow-label hotfix-badge">HOTFIX</span></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    
+                    <!-- CROSS-WORKFLOW GOVERNANCE -->
+                    <tr class="workflow-separator">
+                        <td colspan="14" class="workflow-header">CROSS-WORKFLOW ARCHITECTURE GOVERNANCE</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Architecture Standards Maintenance</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Technical Debt Management</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Architecture Metrics & Reporting</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Pattern & Reuse Library</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="notes">
+            <h3>📊 Key Patterns Across Workflows:</h3>
+            <ul>
+                <li><strong>Systems Architect Consistency:</strong> Always Responsible (R) for architectural decisions across all workflows</li>
+                <li><strong>Accountability Shifts:</strong>
+                    <ul>
+                        <li>Feature: Engineering Manager accountable for design decisions</li>
+                        <li>Bug Fix: Engineering Manager accountable for fix approach</li>
+                        <li>Hotfix: Emergency Approver accountable for all decisions</li>
+                    </ul>
+                </li>
+                <li><strong>AI Persona Collaboration:</strong> Multiple AI architects work together, especially in Feature workflow</li>
+                <li><strong>Governance Board Involvement:</strong>
+                    <ul>
+                        <li>Feature: Active consultation and approval</li>
+                        <li>Bug Fix: Informed of systemic issues</li>
+                        <li>Hotfix: Bypassed during emergency, informed post-incident</li>
+                    </ul>
+                </li>
+            </ul>
+            
+            <h3>⏱️ Time Investment by Role:</h3>
+            <ul>
+                <li><strong>Feature Development:</strong> Systems Architect heavily involved (8-16 hours)</li>
+                <li><strong>Bug Fix:</strong> Systems Architect moderately involved (2-4 hours)</li>
+                <li><strong>Hotfix:</strong> Systems Architect rapidly engaged (30-60 minutes)</li>
+                <li><strong>Other AI Personas:</strong> Consulted as needed, parallel processing capability</li>
+            </ul>
+        </div>
+        
+        <div class="insights">
+            <h3>🤖 AI Persona Architecture Insights:</h3>
+            <ul>
+                <li><strong>Orchestration Role:</strong> Systems Architect AI coordinates other AI personas based on need</li>
+                <li><strong>Parallel Processing:</strong> Multiple AI personas can work simultaneously on different aspects</li>
+                <li><strong>Knowledge Synthesis:</strong> Systems Architect combines inputs from specialist AIs into unified design</li>
+                <li><strong>Continuous Learning:</strong> Pattern library grows from all workflows, improving future decisions</li>
+                <li><strong>Emergency Response:</strong> AI can instantly engage for hotfixes, no "wake up" time needed</li>
+                <li><strong>Consistency Enforcement:</strong> AI ensures standards compliance across all workflow types</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

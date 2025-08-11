@@ -1,0 +1,192 @@
+{
+  "last_updated": "2025-08-06T12:26:46.791444",
+  "workflow_count": 6,
+  "workflows": {
+    "wf2-hotfix": {
+      "id": "wf2-hotfix",
+      "name": "Hotfix Workflow",
+      "version": "1.0.0",
+      "type": "master",
+      "description": "Emergency production fix process",
+      "tags": [
+        "hotfix",
+        "emergency",
+        "production",
+        "master",
+        "orchestration",
+        "wf2"
+      ],
+      "author": "AI Personas Team",
+      "averageDuration": "4 hours maximum",
+      "inputs": [
+        "INCIDENT_ID",
+        "SEVERITY",
+        "ROLLBACK_FIRST",
+        "APPROVER"
+      ],
+      "outputs": [
+        "HOTFIX_BRANCH",
+        "PR_NUMBER",
+        "MERGE_COMMIT",
+        "VERIFICATION_STATUS",
+        "RESOLUTION_TIME"
+      ]
+    },
+    "wf1-bug-fix": {
+      "id": "wf1-bug-fix",
+      "name": "Bug Fix Workflow",
+      "version": "1.0.0",
+      "type": "master",
+      "description": "End-to-end bug fixing process",
+      "tags": [
+        "bug",
+        "fix",
+        "master",
+        "orchestration",
+        "wf1"
+      ],
+      "author": "AI Personas Team",
+      "averageDuration": "1-3 days",
+      "inputs": [
+        "BUG_ID",
+        "BUG_SEVERITY",
+        "BUG_DESCRIPTION"
+      ],
+      "outputs": [
+        "BUG_FIX_BRANCH",
+        "PR_NUMBER",
+        "MERGE_COMMIT",
+        "VERIFICATION_STATUS"
+      ]
+    },
+    "wf0-feature-development": {
+      "id": "wf0-feature-development",
+      "name": "Feature Development Workflow",
+      "version": "1.0.0",
+      "type": "master",
+      "description": "End-to-end feature development process",
+      "tags": [
+        "feature",
+        "development",
+        "master",
+        "orchestration",
+        "wf0"
+      ],
+      "author": "AI Personas Team",
+      "averageDuration": "2-5 days",
+      "inputs": [
+        "FEATURE_ID",
+        "FEATURE_DESCRIPTION",
+        "PRIORITY"
+      ],
+      "outputs": [
+        "FEATURE_BRANCH",
+        "PR_NUMBER",
+        "MERGE_COMMIT",
+        "STATUS"
+      ]
+    },
+    "wf6-pull-request-review": {
+      "id": "wf6-pull-request-review",
+      "name": "Pull Request Review Workflow (As Reviewer)",
+      "version": "1.0.0",
+      "type": "core",
+      "description": "Review and provide feedback on pull requests",
+      "tags": [
+        "pull-request",
+        "review",
+        "core",
+        "atomic",
+        "wf6"
+      ],
+      "author": "AI Personas Team",
+      "averageDuration": "15-60 minutes",
+      "inputs": [
+        "PR_NUMBER",
+        "REVIEW_TYPE",
+        "AUTO_APPROVE_THRESHOLD"
+      ],
+      "outputs": [
+        "REVIEW_DECISION",
+        "PR_NUMBER",
+        "REVIEW_TYPE",
+        "ISSUES_FOUND"
+      ]
+    },
+    "wf3-branch-creation": {
+      "id": "wf3-branch-creation",
+      "name": "Branch Creation Workflow",
+      "version": "1.0.0",
+      "type": "core",
+      "description": "Creates feature/bug/hotfix branches with standardized naming conventions",
+      "tags": [
+        "git",
+        "branching",
+        "core",
+        "wf3"
+      ],
+      "author": "AI Personas Team",
+      "averageDuration": "1-2 minutes",
+      "inputs": [
+        "WORK_TYPE",
+        "WORK_ITEM_ID",
+        "DESCRIPTION"
+      ],
+      "outputs": [
+        "BRANCH_NAME",
+        "BASE_BRANCH",
+        "STATUS"
+      ]
+    },
+    "wf7-pull-request-response": {
+      "id": "wf7-pull-request-response",
+      "name": "Pull Request Response Workflow (As Author)",
+      "version": "1.0.0",
+      "type": "core",
+      "description": "Respond to PR feedback and update code",
+      "tags": [
+        "pull-request",
+        "response",
+        "core",
+        "atomic",
+        "wf7"
+      ],
+      "author": "AI Personas Team",
+      "averageDuration": "30-120 minutes",
+      "inputs": [
+        "PR_NUMBER",
+        "RESPONSE_TYPE"
+      ],
+      "outputs": [
+        "PR_NUMBER",
+        "COMMITS_ADDED",
+        "COMMENTS_RESOLVED",
+        "STATUS"
+      ]
+    }
+  },
+  "dependencies": {
+    "wf2-hotfix": [
+      "wf6-merge",
+      "wf7-post-merge-monitoring",
+      "wf5-pull-request-creation",
+      "wf4-code-commit"
+    ],
+    "wf1-bug-fix": [
+      "wf3-branch-creation",
+      "wf5-pull-request-creation",
+      "wf7-post-merge-monitoring",
+      "wf6-merge",
+      "wf4-code-commit"
+    ],
+    "wf0-feature-development": [
+      "branch-creation",
+      "post-merge-monitoring",
+      "pull-request-creation",
+      "merge-workflow"
+    ],
+    "wf6-pull-request-review": [],
+    "wf3-branch-creation": [],
+    "wf7-pull-request-response": []
+  }
+}

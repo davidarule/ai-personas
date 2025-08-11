@@ -1,0 +1,338 @@
+Metadata-Version: 2.4
+Name: ai-personas
+Version: 0.1.0
+Summary: AI-powered DevSecOps personas for Azure DevOps integration
+Author-email: AI Personas Team <ai-personas@example.com>
+License: MIT
+Project-URL: Homepage, https://github.com/ai-personas/ai-personas
+Project-URL: Bug Tracker, https://github.com/ai-personas/ai-personas/issues
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: aiohttp>=3.8.0
+Requires-Dist: aiofiles>=0.8.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: python-dateutil>=2.8.0
+Requires-Dist: asyncio>=3.4.3
+Requires-Dist: typing-extensions>=4.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.20.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.0.0; extra == "dev"
+Requires-Dist: black>=22.0.0; extra == "dev"
+Requires-Dist: flake8>=5.0.0; extra == "dev"
+Requires-Dist: mypy>=0.990; extra == "dev"
+Requires-Dist: isort>=5.10.0; extra == "dev"
+Provides-Extra: test
+Requires-Dist: pytest>=7.0.0; extra == "test"
+Requires-Dist: pytest-asyncio>=0.20.0; extra == "test"
+Requires-Dist: pytest-cov>=4.0.0; extra == "test"
+Requires-Dist: pytest-mock>=3.10.0; extra == "test"
+
+# AI Personas - AI-Powered DevSecOps Software Development Team
+
+An AI-powered software development team with comprehensive personas for all software development roles, featuring advanced DevSecOps capabilities, multi-framework security compliance, and **multi-project support** for managing multiple Azure DevOps projects simultaneously.
+
+## 🎉 Multi-Project Architecture Status
+
+✅ **Multi-Project Support Successfully Implemented!**
+
+The AI Factory now supports complete project independence with:
+- **Project Registry** - Centralized management of all projects
+- **Context Isolation** - Each project has isolated workspace and state
+- **MCP Multi-Tenancy** - Separate Memory, Filesystem, and Code Analysis servers per project
+- **Dynamic Routing** - Skill-based work item assignment across projects
+- **Performance Tracking** - Per-project metrics and optimization
+
+## 🚀 AI Software Factory Features
+
+Our AI Software Factory provides a complete development team with specialized personas:
+
+- **13 AI Personas** - Covering all software development roles with security focus
+- **DevSecOps Integration** - Security-first development with automated compliance
+- **Multi-Framework Compliance** - NIST CSF, ISO 27001, NIST SP 800-53, Cloud Controls Matrix, Essential Eight
+- **Azure DevOps Integration** - Full work item and project management
+- **Multi-Project Support** - Manage multiple projects with isolated contexts and MCP servers
+- **Intelligent Task Routing** - Automatic assignment to appropriate personas with skill-based matching
+- **Collaborative Workflows** - Personas work together on complex tasks with security reviews
+- **Security Quality Gates** - Comprehensive security validation at every stage
+- **Project-Isolated MCP Servers** - Memory, Filesystem, and Code Analysis isolation per project
+- **Enhanced Work Item Routing** - Skill matrix, workload balancing, and performance tracking
+
+## 🎯 Quick Start
+
+### Prerequisites
+- Python 3.8+
+- Azure DevOps account with PAT token
+- Git
+
+### 1. Clone the Repository
+```bash
+git clone https://dev.azure.com/data6/AI-Pilot-Project/_git/ai-personas
+cd ai-personas
+```
+
+### 2. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+This will install all necessary Python packages for the AI Factory.
+
+### 3. Start AI Factory
+```bash
+./start-ai-factory.sh
+```
+
+This starts the AI Software Factory services:
+- **Master Controller** - Orchestrates all personas
+- **Control Center** (3012) - Web dashboard for monitoring
+- **Azure DevOps Integration** - Work item synchronization
+
+### 4. Access the Control Center
+
+Open http://localhost:3012 to see the AI Factory dashboard.
+
+## 👥 Available AI Personas
+
+The AI Factory includes these specialized personas:
+
+| Persona | Specialty | Role |
+|---------|-----------|------|
+| **SteveBot** | System Architecture | Designs system architecture and makes technical decisions |
+| **JordanBot** | Backend Development | Implements backend services and APIs |
+| **MattBot** | Frontend Development | Builds user interfaces and frontend applications |
+| **KavBot** | Testing & QA | Creates and executes comprehensive test strategies |
+| **DaveBot** | Project Management | Coordinates team efforts and manages project flow |
+| **LachlanBot** | DevOps & Cloud | Manages infrastructure and deployment pipelines |
+| **ShaunBot** | UI/UX Design | Creates user experience designs and interfaces |
+| **MobyBot** | Mobile Development | Develops iOS and Android applications |
+| **AIBot** | AI Integration | Integrates AI/ML capabilities into applications |
+| **RuleyBot** | Requirements Analysis | Analyzes and documents requirements |
+| **BrumbieBot** | Product Management | Defines product strategy and roadmap |
+| **LaureenBot** | Technical Writing | Creates documentation and user guides |
+| **PuckBot** | Full Stack Dev | Handles end-to-end feature development |
+
+## 📋 Common Workflows
+
+### Starting Work on a Task
+```bash
+# Create a work item in Azure DevOps
+# The AI Factory will automatically:
+# 1. Assign it to the appropriate persona
+# 2. Update status to Active
+# 3. Begin implementation
+```
+
+### Automated Workflow Example
+```bash
+# When a new feature work item is created:
+# 1. DaveBot coordinates the effort
+# 2. SteveBot designs the architecture
+# 3. JordanBot and MattBot implement backend/frontend
+# 4. KavBot creates and runs tests
+# 5. LachlanBot handles deployment
+```
+
+### Multi-Persona Collaboration
+The AI Factory automatically coordinates multiple personas for complex tasks:
+- Architecture design meetings
+- Code reviews across personas
+- Integrated testing strategies
+- Deployment coordination
+
+## 🏗️ Architecture
+
+### AI Factory Architecture
+```
+┌─────────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   AI Factory        │     │  Azure DevOps    │     │  Master Controller│
+│                     │     │                  │     │                  │
+│  ┌───────────────┐  │     │  Work Items      │     │  Orchestration   │
+│  │ 13 AI Personas│  │────▶│  - Tasks        │◀────│  - Task Routing  │
+│  │ Specialized   │  │     │  - Features     │     │  - Coordination  │
+│  └───────────────┘  │     │  - Bugs         │     │  - Monitoring    │
+│                     │     └──────────────────┘     └──────────────────┘
+│  Capabilities:      │              ▲                         ▲
+│  - Architecture     │              │                         │
+│  - Development      │              │                         │
+│  - Testing          │              │                         │
+│  - DevOps           │              │                         │
+│  - Documentation    │              │                         │
+└─────────────────────┘              │                         │
+         │                           │                         │
+         ▼                           │                         │
+┌────────────────────────────────────┴─────────────────────────┘
+│              AI Software Factory Infrastructure               │
+│  • Master Controller - Persona orchestration                  │
+│  • Control Center (3012) - Web dashboard                      │
+│  • Azure DevOps Integration - Work item management            │
+│  • Intelligent Routing - Automatic task assignment            │
+└───────────────────────────────────────────────────────────────┘
+```
+
+### Key Benefits
+1. **Complete Development Team** - 13 specialized AI personas
+2. **Intelligent Orchestration** - Automatic task routing and coordination
+3. **Azure DevOps Integration** - Seamless work item management
+4. **Collaborative Workflows** - Personas work together effectively
+5. **Comprehensive Coverage** - From architecture to deployment
+
+## 🛠️ Configuration
+
+### Persona Configuration
+Personas are configured in `configs/[persona-name]/persona-config.yaml`:
+```yaml
+persona:
+  name: PersonaName
+  role: Role Description
+  expertise:
+    - Skill 1
+    - Skill 2
+  communication:
+    style: professional
+```
+
+### AI Factory Configuration
+Edit `orchestration/config.json` for Azure DevOps settings:
+```json
+{
+  "azure_devops": {
+    "organization": "your-org",
+    "project": "your-project",
+    "pat_token": "your-pat-token"
+  },
+  "personas": {
+    "enabled": true,
+    "auto_routing": true
+  }
+}
+```
+
+## 🔧 Management Commands
+
+### Start/Stop Services
+```bash
+# Start AI Factory
+./start-ai-factory.sh
+
+# Stop AI Factory
+./stop-ai-factory.sh
+```
+
+### View Logs
+```bash
+# Master controller logs
+tail -f orchestration/logs/master-controller.log
+
+# Control center logs
+tail -f orchestration/logs/control-center.log
+
+# Persona logs
+tail -f logs/[persona-name].log
+```
+
+### Check Status
+```bash
+# Check service status
+curl http://localhost:3012/api/status  # Control Center
+curl http://localhost:3012/api/personas # List active personas
+curl http://localhost:3012/api/metrics  # View metrics
+```
+
+## 📚 Documentation
+
+- [AI Factory Implementation Plan](AI_FACTORY_IMPLEMENTATION_PLAN.md) - Detailed implementation guide
+- [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Quick overview
+- [User Manual](USER_MANUAL.md) - Complete user guide
+
+## 🚨 Troubleshooting
+
+### Personas Not Starting
+1. Check Python version: `python --version` (3.8+ required)
+2. Verify dependencies: `pip install -r requirements.txt`
+3. Check logs: `tail -f logs/[persona-name].log`
+
+### Azure DevOps Connection Issues
+1. Verify PAT token in `orchestration/config.json`
+2. Check network connectivity to Azure DevOps
+3. Review logs: `tail -f orchestration/logs/master-controller.log`
+
+### Work Items Not Being Processed
+1. Check work item assignment in Azure DevOps
+2. Verify persona email mappings
+3. Review orchestration logs for routing issues
+
+### Control Center Issues
+1. Check if running: `lsof -i :3012`
+2. Review logs: `tail -f orchestration/logs/control-center.log`
+3. Ensure dependencies: `pip install fastapi uvicorn aiofiles`
+
+## 🔄 Migration Path
+
+### Current Features
+- ✅ 13 specialized AI personas with DevSecOps focus
+- ✅ Full Azure DevOps integration
+- ✅ Multi-project support with context switching
+- ✅ Project-isolated MCP servers (Memory, Filesystem, Serena)
+- ✅ Intelligent task routing with skill-based matching
+- ✅ Collaborative workflows with security reviews
+- ✅ Comprehensive monitoring and health checks
+- ✅ Connection pooling and resource management
+- ✅ 5 security frameworks implementation
+
+### Recent Updates (Phase 1-3 Complete)
+- ✅ **Phase 1**: Multi-Project Architecture
+  - Project Registry for centralized management
+  - Project Context switching with state preservation
+  - Hierarchical configuration (Global → Project → Persona)
+  - Dynamic path resolution system
+- ✅ **Phase 2**: MCP Server Multi-Tenancy
+  - Project-isolated Memory server with namespacing
+  - Filesystem server with security enforcement
+  - Multi-instance Serena code analysis
+  - Health monitoring and auto-restart
+  - Connection pooling for efficiency
+- ✅ **Phase 3**: Persona Enhancement (In Progress)
+  - Enhanced work item routing with skill matching
+  - Workload balancing and availability tracking
+  - Performance metrics per project
+
+### Roadmap
+- **Phase 4**: Enhanced Orchestration
+- **Phase 5**: Full Azure DevOps Multi-Project Integration
+- **Extended Integrations**: Jira, GitHub, GitLab support
+- **Custom Persona Creation**: Define your own AI team members
+
+## 🤝 Contributing
+
+1. Create feature branch: `git checkout -b feature/your-feature`
+2. Test with AI personas
+3. Update documentation
+4. Submit PR with examples
+
+## 📄 License
+
+This project is licensed under the terms specified in the LICENSE file.
+
+## 🙏 Acknowledgments
+
+- Azure DevOps for work item management
+- The open source community for inspiration
+- All contributors to the AI Factory project
+
+---
+
+**Need Help?** 
+- Check the [documentation](./docs)
+- Review persona configurations in `configs/`
+- Check logs in `logs/` directory

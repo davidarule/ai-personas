@@ -1,0 +1,152 @@
+sequenceDiagram
+    participant User
+    participant QA as QA/Test Engineer<br/>(Quinn Bot)
+    participant Analyzer as Test Requirements<br/>Analyzer
+    participant Env as Test Environment<br/>Setup
+    participant Router as Workflow<br/>Router
+    participant Auto as Automated<br/>Testing
+    participant Manual as Manual<br/>Testing
+    participant Perf as Performance<br/>Testing
+    participant Sec as Security<br/>Testing
+    participant Report as Report<br/>Generator
+    participant ADO as Azure DevOps
+    participant WIUpdate as Work Item Update<br/>(wf12)
+
+    User->>QA: Assign Testing Work<br/>(WORK_ITEM_ID, TYPE: [task|bug|feature|epic|user-story|test-case], ACTION, TEST_TYPE)
+    
+    Note over QA: Prerequisites Check<br/>✓ Access to work item<br/>✓ Test environment available<br/>⚬ Test data prepared
+    
+    Note over QA: Analyze Testing Requirements
+    QA->>Analyzer: Analyze Requirements<br/>(ID: WORK_ITEM_ID, TYPE)
+    Analyzer->>Analyzer: Determine test scope
+    Analyzer->>Analyzer: Check automation feasibility
+    Analyzer->>Analyzer: Define test strategy
+    
+    alt Work Type: bug
+        Analyzer-->>QA: ACTION: verify-bug-fix<br/>SCOPE: Regression + Fix verification<br/>AUTOMATION: Partial
+    else Work Type: feature
+        Analyzer-->>QA: ACTION: test-new-feature<br/>SCOPE: Full functional + integration<br/>AUTOMATION: Yes
+    else Work Type: test-case
+        Analyzer-->>QA: ACTION: execute-test-case<br/>SCOPE: Specific test execution<br/>AUTOMATION: Depends
+    else Other Types
+        Analyzer-->>QA: ACTION: standard-testing<br/>SCOPE: Standard test suite<br/>AUTOMATION: Yes
+    end
+    
+    Note over QA: Setup Test Environment
+    QA->>Env: Prepare Environment
+    Env->>Env: Configure test database
+    Env->>Env: Setup test servers
+    Env->>Env: Prepare test data
+    Env->>Env: Configure test tools
+    Env-->>QA: TEST_ENV_READY: true
+    
+    Note over QA: Route to Testing Workflow
+    QA->>Router: Execute based on ACTION
+    
+    alt ACTION: verify-bug-fix
+        Note over Router: Bug Fix Verification Path
+        Router->>QA: Reproduce Bug
+        QA->>QA: Execute reproduction steps
+        QA->>QA: Document bug behavior
+        QA-->>Router: Bug reproduced
+        
+        Router->>QA: Verify Fix
+        QA->>Auto: Run regression tests
+        Auto-->>QA: Regression passed
+        QA->>QA: Verify bug resolution
+        QA-->>Router: Fix verified
+        
+    else ACTION: test-new-feature
+        Note over Router: Feature Testing Path
+        Router->>QA: Create Test Scenarios
+        QA->>QA: Design test cases
+        QA->>QA: Define acceptance criteria
+        
+        Router->>Auto: Execute Functional Tests
+        Auto-->>Router: Functional tests complete
+        
+        Router->>Auto: Run Integration Tests
+        Auto-->>Router: Integration tests complete
+        
+    else ACTION: execute-test-case
+        Note over Router: Test Case Execution
+        Router->>QA: Execute specific test
+        QA->>QA: Run test steps
+        QA->>QA: Record results
+    end
+    
+    Note over QA: Execute Test Types
+    
+    alt AUTOMATION_NEEDED = true
+        QA->>Auto: Execute Automated Tests
+        par Parallel Test Execution
+            Auto->>Auto: Run Selenium tests
+        and
+            Auto->>Auto: Run API tests
+        and
+            Auto->>Auto: Run Cypress tests
+        end
+        Auto->>Auto: Generate test report
+        Auto-->>QA: AUTOMATED_TEST_RESULTS
+    end
+    
+    alt TEST_TYPE = manual
+        QA->>Manual: Perform Manual Testing
+        Manual->>Manual: Execute exploratory testing
+        Manual->>Manual: Perform usability testing
+        Manual->>Manual: Document test results
+        Manual-->>QA: MANUAL_TEST_RESULTS
+    end
+    
+    alt TEST_TYPE = performance
+        QA->>Perf: Performance Testing
+        Perf->>Perf: Run load tests
+        Perf->>Perf: Run stress tests
+        Perf->>Perf: Analyze metrics
+        Perf->>Perf: Identify bottlenecks
+        Perf-->>QA: PERFORMANCE_RESULTS
+    end
+    
+    alt TEST_TYPE = security
+        QA->>Sec: Security Testing
+        Sec->>Sec: Run OWASP scan
+        Sec->>Sec: Check vulnerabilities
+        Sec->>Sec: Test authentication
+        Sec->>Sec: Verify authorization
+        Sec-->>QA: SECURITY_RESULTS
+    end
+    
+    Note over QA: Process Results
+    
+    alt Defects Found
+        QA->>ADO: Log Defects
+        ADO->>ADO: Create Bug work item<br/>Title: "Defect in WORK_ITEM_ID"<br/>Severity: P2<br/>Assign: developer-engineer
+        ADO-->>QA: Bug(s) created
+    end
+    
+    Note over QA: Generate Test Report
+    QA->>Report: Compile Results
+    Report->>Report: Compile test results
+    Report->>Report: Calculate metrics
+    Report->>Report: Generate coverage report
+    Report->>Report: Create summary
+    Report-->>QA: TEST_REPORT generated
+    
+    Note over QA: Update Status
+    QA->>WIUpdate: Update Work Item Status<br/>(wf12-work-item-update)
+    alt Tests Passed
+        WIUpdate->>ADO: Status: Passed
+        QA->>ADO: Create deployment task<br/>Assign: devsecops-engineer
+    else Tests Failed
+        WIUpdate->>ADO: Status: Failed
+        QA->>ADO: Create fix task<br/>Assign: developer-engineer
+    end
+    
+    alt Success
+        QA-->>User: Testing Complete<br/>RESULT: Success<br/>TEST_REPORT: [report]<br/>DEFECTS_FOUND: [count]<br/>ARTIFACTS: [test artifacts]
+        Note over User: Success Criteria Met:<br/>✓ Environment configured<br/>✓ Tests executed<br/>✓ Results documented<br/>✓ Defects logged<br/>✓ Status updated
+    else Error Occurred
+        Note over QA: Error Handling (continue-on-error)
+        QA->>ADO: Mark work item: Blocked<br/>Reason: "Testing blocked"
+        QA-->>User: Testing blocked<br/>(Error logged, investigation needed)
+    end

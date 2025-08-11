@@ -1,0 +1,75 @@
+sequenceDiagram
+    participant User
+    participant Main as Main Workflow<br/>(wf1-bug-fix)
+    participant Branch as Branch Creation<br/>(wf3)
+    participant Commit as Code Commit<br/>(wf4)
+    participant Test as Local Tests
+    participant PR as PR Creation<br/>(wf5)
+    participant ADO as Azure DevOps<br/>Notifications
+    participant Merge as Merge<br/>(wf8)
+    participant Monitor as Post-Merge<br/>(wf9)
+    participant Rollback as Rollback<br/>(wf11)
+
+    User->>Main: Start Bug Fix<br/>(BUG_ID, SEVERITY, DESCRIPTION)
+    
+    Note over Main: Prerequisites Check<br/>✓ Bug verified & reproducible<br/>✓ Root cause identified<br/>✓ Test case exists
+    
+    Note over Main: Initialize Bug Fix
+    Main->>Branch: Execute Branch Creation<br/>(type: bug, id: BUG_ID)
+    Branch-->>Main: Return BRANCH_NAME, STATUS
+    
+    Note over Main: Implement Fix
+    Main->>Commit: Execute Code Commit<br/>(branch: BRANCH_NAME, type: fix, tests: true)
+    Commit-->>Main: Fix Committed with Tests
+    
+    Note over Main: Verify Fix Locally
+    Main->>Test: Run Test Suite<br/>(npm test or pytest for BUG_ID)
+    alt Tests Pass
+        Test-->>Main: Bug Fix Verified ✓
+    else Tests Fail
+        Test-->>Main: Verification Failed ✗
+        Main-->>User: Workflow Failed<br/>(Fix does not resolve bug)
+    end
+    
+    Note over Main: Create Pull Request
+    Main->>PR: Create Pull Request<br/>(branch: BRANCH_NAME, type: bugfix)
+    Note over PR: EXPEDITE = true if P1
+    PR-->>Main: Return PR_NUMBER, PR_URL
+    
+    Note over Main: Fast-Track Review<br/>(Conditional: P1 Only)
+    alt Bug Severity = P1
+        Main->>ADO: Notify Emergency Reviewers<br/>(SLA: 2 hours)
+        ADO->>ADO: Alert emergency_reviewers group
+        ADO-->>Main: Notification Sent
+        Note over ADO: P1 Bug Fix - Urgent PR<br/>Requires emergency review
+    else P2 or P3
+        Main->>Main: Standard review process
+    end
+    
+    Note over Main: Merge and Verify
+    Main->>Merge: Execute Merge<br/>(PR_NUMBER, strategy: squash, delete_branch: true)
+    Merge-->>Main: Return MERGE_COMMIT, STATUS
+    
+    Note over Main: Production Verification
+    alt P1 Bug
+        Main->>Monitor: Monitor Production<br/>(duration: 4h, verify_bug: true)
+    else P2/P3 Bug
+        Main->>Monitor: Monitor Production<br/>(duration: 24h, verify_bug: true)
+    end
+    Monitor->>Monitor: Verify bug not reproducible
+    Monitor->>Monitor: Check for regressions
+    Monitor-->>Main: Return VERIFICATION_STATUS<br/>(fixed | not_fixed | partially_fixed)
+    
+    alt Verification Success
+        Main->>ADO: Update Bug Status: Resolved
+        Main-->>User: Bug Fix Complete<br/>(Branch: BRANCH_NAME<br/>PR: PR_NUMBER<br/>Status: VERIFICATION_STATUS)
+    else Verification Failed
+        Note over Main: Error Handling
+        Main->>Main: Log Failure
+        alt Merge Was Completed
+            Main->>Rollback: Execute Rollback<br/>(commit: MERGE_COMMIT, reason: "Bug fix verification failed")
+            Rollback-->>Main: Rollback Complete
+        end
+        Main->>ADO: Update Bug Status: Reopened
+        Main-->>User: Bug Fix Failed<br/>(Verification: VERIFICATION_STATUS)
+    end

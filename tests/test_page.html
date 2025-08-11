@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page</title>
+</head>
+<body>
+    <h1>Port Forwarding Test</h1>
+    <p>If you can see this, port forwarding is working!</p>
+    <button onclick="testAPI()">Test API Connection</button>
+    <div id="result"></div>
+    <script>
+        async function testAPI() {
+            try {
+                const response = await fetch('http://localhost:8080/api/status');
+                const data = await response.json();
+                document.getElementById('result').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (err) {
+                document.getElementById('result').innerHTML = 'Error: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

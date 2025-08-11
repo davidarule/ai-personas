@@ -1,0 +1,96 @@
+sequenceDiagram
+    participant User
+    participant Main as Main Workflow<br/>(wf2-hotfix)
+    participant ADO as Azure DevOps<br/>Notifications
+    participant Rollback as Rollback<br/>(wf11)
+    participant Git as Git Operations
+    participant Commit as Code Commit<br/>(wf4)
+    participant Tests as Emergency Tests
+    participant PR as PR Creation<br/>(wf5)
+    participant Merge as Merge<br/>(wf8)
+    participant Deploy as Deployment
+    participant Monitor as Post-Merge<br/>(wf9)
+
+    User->>Main: Initiate Hotfix<br/>(INCIDENT_ID, P1, ROLLBACK_FIRST, APPROVER)
+    
+    Note over Main: Prerequisites Check<br/>✓ Production incident confirmed<br/>✓ Rollback decision made<br/>✓ Emergency approver notified<br/>✓ War room channel created
+    
+    Note over Main: IMMEDIATE RESPONSE (Parallel)
+    par Notify All Teams
+        Main->>ADO: Notify Channels<br/>(#war-room, #engineering, #leadership)
+        ADO-->>Main: "P1 Hotfix initiated for INCIDENT_ID"
+    and Conditional Rollback
+        alt ROLLBACK_FIRST = true
+            Main->>Rollback: Execute Emergency Rollback<br/>(target: last_known_good)
+            Rollback-->>Main: System Stabilized
+        else No Immediate Rollback
+            Main->>Main: Proceed with fix
+        end
+    end
+    
+    Note over Main: Create Hotfix Branch
+    Main->>Git: Create Emergency Branch<br/>(from: main, branch: hotfix/INCIDENT_ID-emergency)
+    Git-->>Main: Return BRANCH_NAME
+    
+    Note over Main: Implement Fix
+    Main->>Commit: Execute Code Commit<br/>(type: hotfix, BYPASS_HOOKS: true)
+    Note over Commit: Emergency commit<br/>bypasses normal hooks
+    Commit-->>Main: Fix Committed
+    
+    Note over Main: EMERGENCY TESTING (Parallel, 30m timeout)
+    par Unit Tests
+        Main->>Tests: Run Smoke/Critical Tests<br/>(npm test --critical)
+        Tests-->>Main: Unit Tests Result
+    and Integration Tests
+        Main->>Tests: Run Critical Integration<br/>(--critical-only)
+        Tests-->>Main: Integration Result
+    and Manual Verification
+        Main->>Main: Wait 5m for manual check
+        Main-->>Main: Manual verification complete
+    end
+    
+    alt Any Test Fails
+        Tests-->>Main: Test Failed ✗
+        Main-->>User: Hotfix Failed<br/>(Cannot proceed)
+    else All Tests Pass
+        Tests-->>Main: Tests Passed ✓
+    end
+    
+    Note over Main: Emergency PR and Review
+    Main->>PR: Create Emergency PR<br/>(EMERGENCY: true, BYPASS_POLICIES: true)
+    Note over PR: Required reviewer: APPROVER<br/>All policies bypassed
+    PR-->>Main: Return PR_NUMBER, PR_URL
+    
+    Note over Main: Emergency Merge
+    Main->>Merge: Execute Emergency Merge<br/>(strategy: rebase, BYPASS_CHECKS: true)
+    Note over Merge: Emergency merge<br/>bypasses all checks
+    Merge-->>Main: Return MERGE_COMMIT
+    
+    Note over Main: Deploy Hotfix
+    Main->>Deploy: Trigger Production Deployment<br/>(emergency: true, skip: [staging, canary])
+    Note over Deploy: Direct to production<br/>Skips all intermediate stages
+    Deploy-->>Main: Deployment Complete
+    
+    Note over Main: Verify Hotfix
+    Main->>Monitor: Monitor Production<br/>(duration: 1h, threshold: critical)
+    Monitor->>Monitor: Check incident resolved
+    Monitor->>Monitor: Verify no new issues
+    Monitor-->>Main: Return VERIFICATION_STATUS
+    
+    Note over Main: Backport to Branches
+    Main->>Git: Cherry-pick to Active Branches<br/>(targets: [develop, release/*])
+    Git->>Git: Create PRs for backports
+    Git-->>Main: Backport PRs Created
+    
+    alt Hotfix Successful
+        Main->>ADO: Update Incident: Resolved
+        Main-->>User: Hotfix Complete<br/>(Commit: MERGE_COMMIT<br/>Status: VERIFICATION_STATUS<br/>Time: RESOLUTION_TIME)
+        Note over User: SLA Met: < 4 hours
+    else Hotfix Failed or Caused Issues
+        Note over Main: EMERGENCY ROLLBACK
+        Main->>Rollback: Execute Emergency Rollback<br/>(target: MERGE_COMMIT)
+        Rollback-->>Main: Rolled Back
+        Main->>ADO: Escalate to Executive Level
+        ADO->>ADO: Send notifications:<br/>- Error logs<br/>- Slack: #war-room<br/>- Email: APPROVER
+        Main-->>User: Hotfix Failed<br/>(System rolled back)
+    end

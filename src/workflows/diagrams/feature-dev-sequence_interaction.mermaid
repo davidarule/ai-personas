@@ -1,0 +1,114 @@
+sequenceDiagram
+    participant Dev as Developer
+    participant System as Workflow System<br/>(wf0-feature-development)
+    participant ADO as Azure DevOps
+    participant Git as Git Repository
+    participant Reviewer as Code Reviewer(s)
+    participant CI as CI/CD Pipeline
+    participant Monitor as Monitoring System
+    
+    Note over Dev, ADO: Prerequisites:<br/>- Authenticated with Azure DevOps<br/>- Repository cloned locally<br/>- Access to development tools
+    
+    Dev->>System: Initiate Feature Development<br/>(FEATURE_ID, DESCRIPTION, PRIORITY)
+    System->>ADO: Validate Feature ID<br/>(${FEATURE_ID})
+    ADO-->>System: Feature Details Confirmed
+    
+    rect rgb(240, 248, 255)
+        Note left of System: Initialize Feature Phase
+        System->>Git: Create Feature Branch<br/>(wf3-branch-creation)
+        Git-->>System: Branch Created: ${BRANCH_NAME}
+        System-->>Dev: Development Environment Ready
+    end
+    
+    rect rgb(255, 248, 240)
+        Note left of System: Development Cycle<br/>(Iterative until complete)
+        loop Development Iterations
+            Dev->>Dev: Implement Feature Changes
+            Dev->>Git: Stage Changes
+            Dev->>System: Request Commit<br/>(wf4-code-commit)
+            System->>Git: Commit Changes<br/>(type: feat)
+            Git-->>System: Commit Successful
+            
+            System->>CI: Run PR Readiness Check<br/>(wf13-pr-readiness-check)
+            CI->>CI: Run Tests & Linting
+            CI->>CI: Check Code Coverage
+            CI->>CI: Validate Standards
+            CI-->>System: Return READY_FOR_PR status
+            
+            alt PR Ready
+                System-->>Dev: Ready to create PR ✓
+                Note over Dev: Exit development loop
+            else Not Ready
+                CI-->>Dev: Issues to Address:<br/>- Test failures<br/>- Coverage gaps<br/>- Standard violations
+                Dev->>Dev: Fix Issues
+            end
+        end
+    end
+    
+    rect rgb(240, 255, 240)
+        Note left of System: Pull Request Phase
+        Dev->>System: Create Pull Request
+        System->>ADO: Create PR<br/>(wf5-pull-request-creation)
+        ADO->>ADO: Link to Work Item ${FEATURE_ID}
+        ADO-->>System: PR #${PR_NUMBER} Created
+        System-->>Dev: PR URL: ${PR_URL}
+        
+        ADO->>Reviewer: Notify: PR Ready for Review
+        ADO->>CI: Trigger PR Validation Build
+    end
+    
+    rect rgb(255, 240, 255)
+        Note left of System: Review Cycle<br/>(Iterative until approved)
+        loop Review Iterations
+            Reviewer->>ADO: Review Code Changes
+            CI->>ADO: Post Build/Test Results
+            
+            alt Changes Requested
+                Reviewer->>ADO: Request Changes<br/>- Code improvements<br/>- Documentation<br/>- Test coverage
+                ADO->>Dev: Notify: Feedback Received
+                Dev->>Dev: Address Feedback
+                Dev->>Git: Push Updates
+                System->>ADO: Update PR<br/>(wf7-pull-request-response)
+                ADO->>Reviewer: Notify: PR Updated
+            else Approved
+                Reviewer->>ADO: Approve PR ✓
+                ADO->>ADO: Check Approval Requirements<br/>- Min reviewers met<br/>- No blocking comments<br/>- All checks passed
+                ADO-->>System: PR Approved
+                Note over Reviewer: Exit review loop
+            else Waiting
+                System->>System: Wait 30m
+            end
+        end
+    end
+    
+    rect rgb(240, 240, 255)
+        Note left of System: Merge & Validation Phase
+        System->>ADO: Initiate Merge<br/>(wf8-merge)
+        ADO->>Git: Squash & Merge PR #${PR_NUMBER}
+        Git-->>ADO: Merge Commit: ${MERGE_COMMIT}
+        ADO->>ADO: Close PR & Update Work Item
+        ADO-->>System: Merge Complete
+        
+        System->>Monitor: Start Post-Merge Monitoring<br/>(wf9-post-merge-monitoring)
+        Monitor->>CI: Monitor Build/Deploy
+        Monitor->>Monitor: Track for 24h<br/>- Performance metrics<br/>- Error rates<br/>- System health
+    end
+    
+    alt All Success Criteria Met
+        Monitor-->>System: All Checks Passing ✓
+        System->>ADO: Update Feature Status: Complete
+        System-->>Dev: Feature Successfully Deployed<br/>(Branch: ${BRANCH_NAME}<br/>PR: #${PR_NUMBER}<br/>Commit: ${MERGE_COMMIT})
+    else Failure Detected
+        Monitor-->>System: Issues Detected ⚠
+        System->>System: Log Error Details
+        System->>ADO: Update Work Item: Failed
+        alt Merge Was Completed
+            System->>Git: Execute Rollback<br/>(wf11-rollback)
+            Git-->>System: Rolled Back to Previous State
+            System->>Dev: Notify: Rollback Executed
+            System->>Reviewer: Notify: Feature Rolled Back
+        end
+        System-->>Dev: Workflow Failed<br/>(See logs for details)
+    end
+    
+    Note over Dev, Monitor: Notifications sent to:<br/>- Azure DevOps (Work Item ${FEATURE_ID})<br/>- Error Logs<br/>- Team Members

@@ -1,0 +1,724 @@
+<!-- Complete Agents Tab with Visible Models and Update Capability -->
+
+<!-- Add this button to your existing .settings-tabs div -->
+<button class="tab-button" onclick="switchSettingsTab('agents')">Agents</button>
+
+<!-- Add this complete tab content after your other tabs (tools-tab, etc.) -->
+<div id="agents-tab" class="tab-content">
+    <div style="background: #1a1a1a; padding: 20px; border-radius: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <h3 style="margin-top: 0; color: #3b82f6;">AI Agent Configuration</h3>
+                <p style="color: #999; margin: 5px 0 0 0;">
+                    Configure AI providers and select models for your multi-agent system. Click refresh to check for new models.
+                </p>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-primary" onclick="refreshAllProviders()">
+                    ↻ Check for New Models
+                </button>
+                <button class="btn-secondary" onclick="exportModelConfig()">
+                    📤 Export Config
+                </button>
+                <button class="btn-secondary" onclick="importModelConfig()">
+                    📥 Import Config
+                </button>
+            </div>
+        </div>
+
+        <!-- Provider Sections -->
+        <div id="providersList" style="max-height: 640px; overflow-y: auto;">
+            
+            <!-- OpenAI Provider -->
+            <div class="provider-section" id="openai-section" style="background: #2a2a2a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="margin: 0; color: #e0e0e0;">OpenAI</h4>
+                        <p style="margin: 5px 0; color: #999; font-size: 14px;">GPT-5 unified system with up to 2M token context windows</p>
+                        <small id="openai-last-update" style="color: #666; display: none;"></small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn-icon" onclick="refreshProvider('openai')" title="Check for new models">
+                            ↻
+                        </button>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="provider-openai" onchange="toggleProvider('openai', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="openai-config" style="display: none;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">API Key</label>
+                        <input type="password" id="openai-api-key" placeholder="sk-..." 
+                               style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
+                                      border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #ccc; font-size: 14px;">Select Models:</label>
+                        <span id="openai-model-count" style="color: #666; font-size: 12px; margin-left: 10px;">(5 models)</span>
+                    </div>
+                    
+                    <div id="openai-models" class="models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px;">
+                        
+                        <!-- GPT-5 -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px; position: relative;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">NEW</div>
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">GPT-5</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Unified Intelligence</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Agentic Coding</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Architecture</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">74.9% on SWE-bench. 94.6% on AIME 2025. 45% fewer errors than GPT-4o.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: Dynamic (auto-routing)</div>
+                                        <div>Price: TBD (API launching)</div>
+                                        <div style="color: #22c55e;">✓ Unified System | ✓ Extended Thinking</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-openai-gpt-5" value="gpt-5" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- GPT-5 Pro -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px; position: relative;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">NEW</div>
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">GPT-5 Pro</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Extended Reasoning</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Complex Analysis</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">88.4% on GPQA. 50-80% fewer tokens than o3.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: Extended reasoning</div>
+                                        <div>Price: Premium tier</div>
+                                        <div style="color: #3b82f6;">⚡ Replaces o3-pro</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-openai-gpt-5-pro" value="gpt-5-pro" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- GPT-5 Mini -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px; position: relative;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">NEW</div>
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">GPT-5 Mini</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Cost-Effective</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">High Volume</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Efficient variant for high-volume applications.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: Optimized for speed</div>
+                                        <div>Price: Lower tier</div>
+                                        <div style="color: #22c55e;">✓ Fast Response</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-openai-gpt-5-mini" value="gpt-5-mini" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- GPT-4 Turbo -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">GPT-4 Turbo</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">General Purpose</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">128K Context</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Previous flagship model. Still excellent for most tasks.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 128,000 tokens</div>
+                                        <div>Price: $10/$30 per 1M</div>
+                                        <div style="color: #22c55e;">✓ JSON Mode | ✓ Function Calling</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-openai-gpt-4-turbo" value="gpt-4-turbo" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- o3 -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">o3 (Legacy)</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Security Analysis</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Complex Reasoning</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Advanced reasoning. Being replaced by GPT-5 Pro.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 200,000 tokens</div>
+                                        <div>Price: $60/$240 per 1M</div>
+                                        <div style="color: #f59e0b;">⚠ Deprecating soon</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-openai-o3" value="o3" style="margin-left: 10px;">
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anthropic Provider -->
+            <div class="provider-section" id="anthropic-section" style="background: #2a2a2a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="margin: 0; color: #e0e0e0;">Anthropic</h4>
+                        <p style="margin: 5px 0; color: #999; font-size: 14px;">Claude 4 series - Best real-world coding performance with native MCP support</p>
+                        <small id="anthropic-last-update" style="color: #666; display: none;"></small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn-icon" onclick="refreshProvider('anthropic')" title="Check for new models">
+                            ↻
+                        </button>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="provider-anthropic" onchange="toggleProvider('anthropic', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="anthropic-config" style="display: none;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">API Key</label>
+                        <input type="password" id="anthropic-api-key" placeholder="sk-ant-..." 
+                               style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
+                                      border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #ccc; font-size: 14px;">Select Models:</label>
+                        <span id="anthropic-model-count" style="color: #666; font-size: 12px; margin-left: 10px;">(5 models)</span>
+                    </div>
+                    
+                    <div id="anthropic-models" class="models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px;">
+                        
+                        <!-- Claude Opus 4.1 -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px; position: relative;">
+                            <div style="position: absolute; top: 10px; right: 10px; background: #22c55e; color: white; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;">LATEST</div>
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Claude Opus 4.1</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Complex Reasoning</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Architecture</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Latest</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Latest Opus version. Enhanced performance for agent workflows.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 200,000 tokens</div>
+                                        <div>Price: $15/$75 per 1M</div>
+                                        <div style="color: #22c55e;">✓ Native MCP | ✓ Tool Use | ✓ Computer Use</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-anthropic-claude-opus-4-1" value="claude-opus-4-1-20250805" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Claude 4 Opus -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Claude 4 Opus</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Complex Reasoning</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Debugging</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">72.5% on SWE-bench. Industry-leading for multi-hour workflows.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 200,000 tokens</div>
+                                        <div>Price: $15/$75 per 1M</div>
+                                        <div style="color: #22c55e;">✓ Native MCP | ✓ Tool Use</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-anthropic-claude-4-opus" value="claude-4-opus" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Claude 4 Sonnet -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Claude 4 Sonnet</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Code Generation</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Testing</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Documentation</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">72.7% on SWE-bench. Optimal balance with 64K output.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 200,000 tokens</div>
+                                        <div>Price: $3/$15 per 1M</div>
+                                        <div style="color: #22c55e;">✓ Native MCP | ✓ 64K Output</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-anthropic-claude-4-sonnet" value="claude-4-sonnet" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Claude 3.7 Sonnet -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Claude 3.7 Sonnet</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Analysis</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Problem Solving</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Toggleable extended thinking for complex analysis.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 200,000 tokens</div>
+                                        <div>Price: $3/$15 per 1M</div>
+                                        <div style="color: #22c55e;">✓ Native MCP | ✓ Extended Thinking</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-anthropic-claude-3-7-sonnet" value="claude-3-7-sonnet" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Claude 3.5 Haiku -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Claude 3.5 Haiku</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Rapid Prototyping</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Quick Tasks</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Blazing-fast. 40.6% on SWE-bench despite being smallest.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 200,000 tokens</div>
+                                        <div>Price: $0.80/$4 per 1M</div>
+                                        <div style="color: #22c55e;">✓ Native MCP | ✓ Fastest</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-anthropic-claude-3-5-haiku" value="claude-3-5-haiku" style="margin-left: 10px;">
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google Gemini Provider -->
+            <div class="provider-section" id="gemini-section" style="background: #2a2a2a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <h4 style="margin: 0; color: #e0e0e0;">Google Gemini</h4>
+                        <p style="margin: 5px 0; color: #999; font-size: 14px;">Largest context windows (2M tokens) with native Python execution</p>
+                        <small id="gemini-last-update" style="color: #666; display: none;"></small>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <button class="btn-icon" onclick="refreshProvider('gemini')" title="Check for new models">
+                            ↻
+                        </button>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="provider-gemini" onchange="toggleProvider('gemini', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div id="gemini-config" style="display: none;">
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">API Key</label>
+                        <input type="password" id="gemini-api-key" placeholder="AI..." 
+                               style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
+                                      border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="color: #ccc; font-size: 14px;">Select Models:</label>
+                        <span id="gemini-model-count" style="color: #666; font-size: 12px; margin-left: 10px;">(3 models)</span>
+                    </div>
+                    
+                    <div id="gemini-models" class="models-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px;">
+                        
+                        <!-- Gemini 2.0 Pro Experimental -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Gemini 2.0 Pro Experimental</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Large Context</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Multimodal</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Largest context at 2M tokens. Experimental features.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 2,000,000 tokens</div>
+                                        <div>Price: Variable</div>
+                                        <div style="color: #f59e0b;">⚠ MCP: Coming Apr 2025</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-gemini-2-0-pro-experimental" value="gemini-2.0-pro-experimental" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Gemini 2.5 Pro -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Gemini 2.5 Pro</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Python Execution</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Architecture</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Native Python execution in 30-second sandbox.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 1,000,000 tokens</div>
+                                        <div>Price: $1.25-$2.50/$10-$15 per 1M</div>
+                                        <div style="color: #22c55e;">✓ Python Sandbox | ✓ JSON Schema</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-gemini-2-5-pro" value="gemini-2.5-pro" style="margin-left: 10px;">
+                            </div>
+                        </div>
+
+                        <!-- Gemini 2.5 Flash -->
+                        <div class="model-card" style="background: #1a1a1a; border: 1px solid #444; border-radius: 8px; padding: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0 0 8px 0; color: #3b82f6;">Gemini 2.5 Flash</h5>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px;">
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Cost-Effective</span>
+                                        <span class="tag" style="background: #374151; color: #9ca3af; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Rapid Tasks</span>
+                                    </div>
+                                    <p style="margin: 0 0 8px 0; color: #999; font-size: 13px;">Best price-performance ratio. 22% efficiency gain.</p>
+                                    <div style="font-size: 12px; color: #888;">
+                                        <div>Context: 1,000,000 tokens</div>
+                                        <div>Price: $0.30/$2.50 per 1M</div>
+                                        <div style="color: #22c55e;">✓ JSON Schema</div>
+                                    </div>
+                                </div>
+                                <input type="checkbox" id="model-gemini-2-5-flash" value="gemini-2.5-flash" style="margin-left: 10px;">
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional providers can be added here -->
+
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <button id="saveAgentsSettingsBtn" class="save-btn" onclick="saveAgentsSettings()">Save Agent Configuration</button>
+            <button class="btn-secondary" onclick="testSelectedModels()">Test Selected Models</button>
+        </div>
+
+        <div id="agentsSettingsMessage" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+.provider-section {
+    transition: all 0.3s ease;
+}
+
+.model-card {
+    transition: all 0.2s ease;
+}
+
+.model-card:hover {
+    background: #222 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.tag {
+    white-space: nowrap;
+}
+
+/* Highlight selected models */
+.model-card:has(input:checked) {
+    border-color: #3b82f6 !important;
+    background: #1e293b !important;
+}
+</style>
+
+<!-- JavaScript -->
+<script>
+// Provider refresh functionality
+async function refreshProvider(providerId) {
+    const apiKey = document.getElementById(`${providerId}-api-key`).value.trim();
+    
+    if (!apiKey) {
+        showAgentMessage(`Please enter an API key for ${providerId}`, 'warning');
+        return;
+    }
+    
+    showAgentMessage(`Checking for new ${providerId} models...`, 'info');
+    
+    // Simulate API call - in production, this would call the actual API
+    setTimeout(() => {
+        // Update last update time
+        const lastUpdateEl = document.getElementById(`${providerId}-last-update`);
+        if (lastUpdateEl) {
+            lastUpdateEl.textContent = `Last checked: ${new Date().toLocaleString()}`;
+            lastUpdateEl.style.display = 'block';
+        }
+        
+        showAgentMessage(`${providerId} models are up to date`, 'success');
+    }, 1500);
+}
+
+async function refreshAllProviders() {
+    const providers = ['openai', 'anthropic', 'gemini'];
+    for (const provider of providers) {
+        const checkbox = document.getElementById(`provider-${provider}`);
+        if (checkbox && checkbox.checked) {
+            await refreshProvider(provider);
+        }
+    }
+}
+
+// Toggle provider visibility
+function toggleProvider(providerId, enabled) {
+    const configDiv = document.getElementById(`${providerId}-config`);
+    if (configDiv) {
+        configDiv.style.display = enabled ? 'block' : 'none';
+    }
+    trackAgentsSettingsChanges();
+}
+
+// Track changes
+function trackAgentsSettingsChanges() {
+    const saveBtn = document.getElementById('saveAgentsSettingsBtn');
+    if (saveBtn) {
+        saveBtn.classList.add('has-changes');
+    }
+}
+
+// Save configuration
+async function saveAgentsSettings() {
+    const providers = {};
+    const providerIds = ['openai', 'anthropic', 'gemini'];
+    
+    for (const providerId of providerIds) {
+        const checkbox = document.getElementById(`provider-${providerId}`);
+        if (checkbox && checkbox.checked) {
+            const apiKey = document.getElementById(`${providerId}-api-key`).value.trim();
+            const selectedModels = [];
+            
+            // Get all checked models for this provider
+            const modelCheckboxes = document.querySelectorAll(`#${providerId}-models input[type="checkbox"]:checked`);
+            modelCheckboxes.forEach(cb => {
+                if (cb.value) {
+                    selectedModels.push(cb.value);
+                }
+            });
+            
+            if (apiKey && selectedModels.length > 0) {
+                providers[providerId] = {
+                    enabled: true,
+                    apiKey: apiKey,
+                    models: selectedModels
+                };
+            }
+        }
+    }
+    
+    // Save to localStorage or backend
+    localStorage.setItem('agentConfiguration', JSON.stringify(providers));
+    showAgentMessage('Agent configuration saved successfully!', 'success');
+    
+    // Reset save button
+    const saveBtn = document.getElementById('saveAgentsSettingsBtn');
+    if (saveBtn) {
+        saveBtn.classList.remove('has-changes');
+    }
+}
+
+// Test selected models
+async function testSelectedModels() {
+    const selectedModels = [];
+    
+    // Collect all selected models
+    const modelCheckboxes = document.querySelectorAll('.model-card input[type="checkbox"]:checked');
+    modelCheckboxes.forEach(cb => {
+        selectedModels.push(cb.value);
+    });
+    
+    if (selectedModels.length === 0) {
+        showAgentMessage('Please select at least one model to test', 'warning');
+        return;
+    }
+    
+    showAgentMessage(`Testing ${selectedModels.length} selected models...`, 'info');
+    
+    // Simulate testing
+    setTimeout(() => {
+        showAgentMessage(`Successfully tested ${selectedModels.length} models`, 'success');
+    }, 2000);
+}
+
+// Export configuration
+function exportModelConfig() {
+    const config = {
+        providers: {},
+        timestamp: Date.now(),
+        version: '1.0'
+    };
+    
+    ['openai', 'anthropic', 'gemini'].forEach(providerId => {
+        const enabled = document.getElementById(`provider-${providerId}`)?.checked;
+        const selectedModels = [];
+        
+        document.querySelectorAll(`#${providerId}-models input[type="checkbox"]:checked`).forEach(cb => {
+            selectedModels.push(cb.value);
+        });
+        
+        config.providers[providerId] = {
+            enabled,
+            selectedModels
+        };
+    });
+    
+    // Download as JSON
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-models-config-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    showAgentMessage('Configuration exported successfully', 'success');
+}
+
+// Import configuration
+function importModelConfig() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        try {
+            const text = await file.text();
+            const config = JSON.parse(text);
+            
+            // Apply configuration
+            Object.keys(config.providers).forEach(providerId => {
+                const providerConfig = config.providers[providerId];
+                
+                // Set enabled state
+                const checkbox = document.getElementById(`provider-${providerId}`);
+                if (checkbox) {
+                    checkbox.checked = providerConfig.enabled;
+                    toggleProvider(providerId, providerConfig.enabled);
+                }
+                
+                // Select models
+                providerConfig.selectedModels?.forEach(modelId => {
+                    const modelCheckbox = document.querySelector(`#${providerId}-models input[value="${modelId}"]`);
+                    if (modelCheckbox) {
+                        modelCheckbox.checked = true;
+                    }
+                });
+            });
+            
+            showAgentMessage('Configuration imported successfully', 'success');
+            
+        } catch (error) {
+            showAgentMessage('Failed to import configuration: ' + error.message, 'error');
+        }
+    };
+    input.click();
+}
+
+// Show messages
+function showAgentMessage(message, type) {
+    const messageEl = document.getElementById('agentsSettingsMessage');
+    if (messageEl) {
+        messageEl.textContent = message;
+        messageEl.style.display = 'block';
+        messageEl.style.background = type === 'error' ? '#dc2626' : 
+                                   type === 'success' ? '#22c55e' : 
+                                   type === 'warning' ? '#f59e0b' : '#3b82f6';
+        
+        if (type !== 'info') {
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+    }
+}
+
+// Add event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Add change listeners
+    const providers = ['openai', 'anthropic', 'gemini'];
+    
+    providers.forEach(provider => {
+        const checkbox = document.getElementById(`provider-${provider}`);
+        const apiKeyInput = document.getElementById(`${provider}-api-key`);
+        
+        if (checkbox) {
+            checkbox.addEventListener('change', trackAgentsSettingsChanges);
+        }
+        if (apiKeyInput) {
+            apiKeyInput.addEventListener('input', trackAgentsSettingsChanges);
+        }
+    });
+    
+    // Add change listeners to all model checkboxes
+    const modelCheckboxes = document.querySelectorAll('.model-card input[type="checkbox"]');
+    modelCheckboxes.forEach(cb => {
+        cb.addEventListener('change', trackAgentsSettingsChanges);
+    });
+    
+    // Load saved configuration
+    loadAgentConfiguration();
+});
+
+// Load saved configuration
+function loadAgentConfiguration() {
+    const saved = localStorage.getItem('agentConfiguration');
+    if (saved) {
+        const config = JSON.parse(saved);
+        
+        Object.keys(config).forEach(providerId => {
+            const providerConfig = config[providerId];
+            
+            // Enable provider
+            const checkbox = document.getElementById(`provider-${providerId}`);
+            if (checkbox) {
+                checkbox.checked = providerConfig.enabled;
+                toggleProvider(providerId, providerConfig.enabled);
+            }
+            
+            // Don't show API keys for security
+            const apiKeyInput = document.getElementById(`${providerId}-api-key`);
+            if (apiKeyInput && providerConfig.apiKey) {
+                apiKeyInput.placeholder = 'API key saved (enter new value to change)';
+            }
+            
+            // Check selected models
+            if (providerConfig.models) {
+                providerConfig.models.forEach(modelId => {
+                    const modelCheckbox = document.querySelector(`#${providerId}-models input[value="${modelId}"]`);
+                    if (modelCheckbox) {
+                        modelCheckbox.checked = true;
+                    }
+                });
+            }
+        });
+    }
+}
+</script>

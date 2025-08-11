@@ -1,0 +1,185 @@
+sequenceDiagram
+    participant PM as Product Manager
+    participant EM as Engineering Manager
+    participant TL as Tech Lead
+    participant Dev as Developer/Engineer<br/>(David Bot - AI)
+    participant QA as QA/Test Engineer<br/>(Quinn Bot - AI)
+    participant SA as Systems Architect<br/>(AI)
+    participant SecEng as Security Engineer<br/>(AI)
+    participant PerfEng as Performance Engineer<br/>(AI)
+    participant DevOps as DevOps Engineer<br/>(AI)
+    participant Support as Support Team
+    participant ADO as Azure DevOps
+    participant CI as CI/CD Pipeline
+    participant TestEnv as Test Environments
+    
+    Note over PM, TestEnv: QA TESTING WORKFLOW INTERACTIONS
+    
+    alt Feature Testing
+        PM->>ADO: Feature ready for testing<br/>(Acceptance criteria defined)
+        ADO->>QA: New feature to test<br/>(FEATURE_ID, requirements)
+    else Bug Verification
+        Dev->>ADO: Bug fix ready<br/>(BUG_ID, fix description)
+        ADO->>QA: Verify bug fix
+    else Regression Testing
+        TL->>QA: Release regression needed<br/>(Release candidate)
+    end
+    
+    rect rgb(240, 248, 255)
+        Note left of QA: TEST PLANNING PHASE
+        
+        QA->>ADO: Retrieve requirements<br/>Acceptance criteria<br/>User stories
+        ADO-->>QA: Requirements details
+        
+        QA->>PM: Clarify acceptance criteria
+        PM-->>QA: Business expectations<br/>Priority scenarios
+        
+        QA->>Dev: Technical implementation details
+        Dev-->>QA: API contracts<br/>Database changes<br/>Integration points
+        
+        QA->>SA: Architecture impacts?
+        SA-->>QA: System dependencies<br/>Performance expectations<br/>Scalability requirements
+        
+        QA->>QA: Create test plan<br/>• Test scenarios<br/>• Test data needs<br/>• Environment requirements
+    end
+    
+    rect rgb(255, 248, 240)
+        Note left of QA: ENVIRONMENT PREPARATION
+        
+        QA->>DevOps: Test environment needed
+        DevOps->>TestEnv: Provision environment
+        TestEnv-->>DevOps: Environment ready
+        DevOps-->>QA: Access credentials
+        
+        QA->>Dev: Test data requirements
+        Dev->>Dev: Create test data scripts
+        Dev-->>QA: Test data ready
+        
+        QA->>CI: Configure test automation
+        CI->>CI: Setup test pipelines
+        CI-->>QA: Automation configured
+    end
+    
+    rect rgb(240, 255, 240)
+        Note left of QA: TEST EXECUTION PHASE
+        
+        Note over QA: FUNCTIONAL TESTING
+        QA->>TestEnv: Execute test cases
+        TestEnv-->>QA: Test results
+        
+        alt Issues Found
+            QA->>Dev: Defects identified<br/>Steps to reproduce
+            Dev->>Dev: Investigate issue
+            
+            alt Code Issue
+                Dev->>Dev: Fix code
+                Dev-->>QA: Fix ready for retest
+            else Requirements Issue
+                Dev->>PM: Requirement clarification needed
+                PM-->>Dev: Clarified requirements
+                Dev-->>QA: Updated implementation
+            end
+            
+            QA->>QA: Retest fixes
+        end
+        
+        Note over QA: SPECIALIZED TESTING
+        
+        par Parallel Specialized Tests
+            QA->>SecEng: Security test needed
+            SecEng->>TestEnv: Run security scans
+            SecEng->>SecEng: Vulnerability assessment<br/>OWASP checks<br/>Penetration testing
+            SecEng-->>QA: Security report<br/>Vulnerabilities: [list]
+        and
+            QA->>PerfEng: Performance test needed
+            PerfEng->>TestEnv: Load testing
+            PerfEng->>PerfEng: Stress testing<br/>Bottleneck analysis<br/>Resource monitoring
+            PerfEng-->>QA: Performance report<br/>Metrics: [response times, throughput]
+        end
+        
+        alt Security Issues
+            SecEng->>Dev: Security vulnerabilities
+            Dev->>Dev: Apply security fixes
+            Dev-->>SecEng: Fixes applied
+            SecEng->>QA: Retest security
+        end
+        
+        alt Performance Issues
+            PerfEng->>Dev: Performance bottlenecks
+            Dev->>SA: Architecture optimization needed?
+            SA-->>Dev: Optimization approach
+            Dev->>Dev: Optimize code
+            Dev-->>PerfEng: Optimizations complete
+            PerfEng->>QA: Retest performance
+        end
+    end
+    
+    rect rgb(255, 240, 255)
+        Note left of QA: INTEGRATION & E2E TESTING
+        
+        QA->>CI: Trigger integration tests
+        CI->>TestEnv: Run test suites
+        
+        par Automated Testing
+            CI->>CI: API tests
+            CI->>CI: UI automation
+            CI->>CI: Database tests
+        end
+        
+        CI-->>QA: Test results<br/>Pass rate: X%<br/>Failed tests: [list]
+        
+        QA->>QA: Analyze failures<br/>Categorize issues<br/>Prioritize fixes
+        
+        alt Critical Failures
+            QA->>TL: Critical issues found
+            TL->>Dev: Priority fixes needed
+            Dev-->>QA: Fixes deployed
+            QA->>QA: Rerun critical tests
+        end
+    end
+    
+    rect rgb(240, 240, 255)
+        Note left of QA: REPORTING & SIGN-OFF
+        
+        QA->>QA: Generate test report<br/>• Test coverage<br/>• Pass/fail rates<br/>• Defect summary<br/>• Risk assessment
+        
+        QA->>ADO: Update work items<br/>Test status<br/>Link defects
+        
+        alt All Tests Pass
+            QA->>TL: QA Sign-off ✓
+            TL->>DevOps: Ready for deployment
+            DevOps->>DevOps: Deploy to staging
+            
+            QA->>PM: Testing complete<br/>All criteria met
+            PM->>ADO: Update status: QA Approved
+            
+        else Tests Failed
+            QA->>TL: QA Blocked ✗<br/>Critical issues remain
+            TL->>Dev: Fix required issues
+            
+            QA->>PM: Testing incomplete<br/>Blocking issues: [list]
+            PM->>EM: Escalate delays
+        end
+    end
+    
+    rect rgb(255, 255, 240)
+        Note left of QA: POST-DEPLOYMENT VERIFICATION
+        
+        DevOps->>QA: Deployed to production
+        
+        QA->>TestEnv: Smoke tests in production
+        TestEnv-->>QA: Production validation
+        
+        alt Issues in Production
+            QA->>Support: Production issue detected
+            Support->>TL: Escalate to engineering
+            TL->>Dev: Hotfix needed
+        else All Good
+            QA->>Support: Production verified ✓
+            Support->>Support: Monitor for issues
+        end
+        
+        QA->>ADO: Close test cycle<br/>Archive test artifacts
+    end
+    
+    Note over QA: QA Deliverables:<br/>✓ Test plans created<br/>✓ Tests executed<br/>✓ Defects logged<br/>✓ Reports generated<br/>✓ Sign-off provided

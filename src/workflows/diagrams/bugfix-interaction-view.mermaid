@@ -1,0 +1,139 @@
+sequenceDiagram
+    participant Reporter as Bug Reporter/<br/>QA Engineer
+    participant Dev as Developer
+    participant System as Workflow System<br/>(wf1-bug-fix)
+    participant ADO as Azure DevOps
+    participant Git as Git Repository
+    participant CI as CI/CD Pipeline
+    participant Reviewer as Code Reviewer
+    participant EmReviewer as Emergency<br/>Reviewer (P1)
+    participant Monitor as Monitoring/<br/>Production
+    participant Support as Support Team
+    
+    Note over Reporter, ADO: Prerequisites Complete:<br/>✓ Bug verified & reproducible<br/>✓ Root cause identified by Dev<br/>✓ Test case created by QA
+    
+    Reporter->>ADO: Bug Report Filed<br/>(BUG_ID, Severity: P1/P2/P3)
+    ADO->>Dev: Bug Assigned
+    Dev->>System: Start Bug Fix Workflow<br/>(BUG_ID, SEVERITY, DESCRIPTION)
+    
+    rect rgb(240, 248, 255)
+        Note left of System: Initialize Bug Fix
+        System->>Git: Create Bug Fix Branch<br/>(wf3-branch-creation)
+        Git-->>System: Branch Created
+        System-->>Dev: Working Branch Ready
+    end
+    
+    rect rgb(255, 248, 240)
+        Note left of System: Implement & Test Fix
+        Dev->>Dev: Implement Bug Fix
+        Dev->>Dev: Write/Update Tests
+        Dev->>Git: Commit Fix with Tests
+        System->>Git: Execute Code Commit<br/>(wf4-code-commit)
+        Git-->>System: Changes Committed
+        
+        Dev->>CI: Run Local Tests<br/>(npm test / pytest)
+        CI->>CI: Execute Test Suite
+        CI->>CI: Verify Bug Fixed
+        CI->>CI: Check No Regressions
+        CI-->>Dev: Local Verification Results
+        
+        alt Tests Pass
+            CI-->>System: Bug Fix Verified ✓
+        else Tests Fail
+            CI-->>Dev: Fix Incomplete ✗
+            Dev->>Dev: Revise Fix
+        end
+    end
+    
+    rect rgb(240, 255, 240)
+        Note left of System: Pull Request Creation
+        Dev->>System: Create Pull Request
+        System->>ADO: Create PR<br/>(wf5-pull-request-creation)
+        ADO->>ADO: Link to Bug ID
+        ADO->>ADO: Set PR Type: bugfix
+        
+        alt P1 Bug (Critical)
+            ADO->>ADO: Mark PR as EXPEDITED
+            ADO-->>System: PR Created (Fast-Track)
+        else P2/P3 Bug
+            ADO-->>System: PR Created (Standard)
+        end
+        
+        ADO-->>Dev: PR URL Provided
+        ADO->>CI: Trigger PR Validation
+    end
+    
+    rect rgb(255, 240, 255)
+        Note left of System: Review Process
+        alt P1 Bug - Emergency Review
+            System->>ADO: Notify Emergency Reviewers
+            ADO->>EmReviewer: URGENT: P1 Bug Fix<br/>SLA: 2 hours
+            EmReviewer->>ADO: Review Code Changes
+            CI->>ADO: Post Test Results
+            
+            alt Fix Approved
+                EmReviewer->>ADO: Approve PR (Expedited) ✓
+            else Changes Needed
+                EmReviewer->>ADO: Request Changes
+                ADO->>Dev: Address Feedback ASAP
+                Dev->>Git: Push Updates
+            end
+        else P2/P3 Bug - Standard Review
+            ADO->>Reviewer: PR Ready for Review
+            Reviewer->>ADO: Review Code Changes
+            CI->>ADO: Post Test Results
+            
+            alt Fix Approved
+                Reviewer->>ADO: Approve PR ✓
+            else Changes Needed
+                Reviewer->>ADO: Request Changes
+                ADO->>Dev: Feedback Received
+                Dev->>Git: Push Updates
+            end
+        end
+    end
+    
+    rect rgb(240, 240, 255)
+        Note left of System: Merge & Deploy
+        System->>ADO: Initiate Merge<br/>(wf8-merge)
+        ADO->>Git: Squash & Merge
+        Git->>Git: Delete Bug Fix Branch
+        Git-->>ADO: Merge Complete
+        ADO->>CI: Deploy to Production
+        CI-->>System: Deployment Successful
+        ADO->>ADO: Update Bug Status: Fixed
+    end
+    
+    rect rgb(255, 255, 240)
+        Note left of System: Production Verification
+        System->>Monitor: Start Monitoring<br/>(wf9-post-merge-monitoring)
+        
+        alt P1 Bug
+            Monitor->>Monitor: Intensive Monitoring (4h)<br/>- Bug reproduction tests<br/>- Performance metrics<br/>- Error rates
+            Monitor->>Support: Alert: P1 Fix Deployed
+            Support->>Support: Verify with affected customers
+        else P2/P3 Bug
+            Monitor->>Monitor: Standard Monitoring (24h)<br/>- Bug reproduction tests<br/>- System health checks
+        end
+        
+        Reporter->>ADO: Verify Bug Fixed in Production
+        
+        alt Bug Successfully Fixed
+            Reporter->>ADO: Confirm Bug Resolved ✓
+            Monitor-->>System: VERIFICATION_STATUS: fixed
+            ADO->>ADO: Close Bug
+            System-->>Dev: Bug Fix Complete
+            ADO->>Support: Notify: Bug Resolved
+        else Bug Still Reproduces
+            Reporter->>ADO: Bug Still Present ✗
+            Monitor-->>System: VERIFICATION_STATUS: not_fixed
+            System->>Git: Execute Rollback<br/>(wf11-rollback)
+            Git-->>System: Rolled Back
+            ADO->>ADO: Reopen Bug
+            ADO->>Dev: Bug Fix Failed - Investigate
+            System-->>Dev: Rollback Executed
+            Support->>Support: Monitor for customer impact
+        end
+    end
+    
+    Note over Reporter, Support: Notifications sent to:<br/>- Azure DevOps (Bug ID)<br/>- Development Team<br/>- Support Team (P1 only)<br/>- Emergency Reviewers (P1 only)

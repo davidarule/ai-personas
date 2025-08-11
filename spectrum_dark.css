@@ -1,0 +1,181 @@
+/* Spectrum-inspired Dark theme for AI Factory Control Center
+   Notes:
+   - Targets your existing HTML classes/structure (no markup changes required)
+   - Remove old <style> from index.html and link this file
+   - Typography uses Source Sans 3 (fallback to Segoe UI / system)
+*/
+
+/* ---------- Tokens (approximate Spectrum Dark) ---------- */
+:root{
+  /* Neutrals */
+  --bg-canvas: #141414;          /* page background */
+  --bg-surface: #1e1e1e;         /* cards, panels */
+  --bg-surface-2: #262626;       /* hover / raised */
+  --bg-subtle: #0f0f0f;          /* code/log areas */
+  --border: #2f2f2f;             /* standard border */
+  --border-strong: #3a3a3a;      
+
+  /* Text */
+  --text: #f0f0f0;
+  --text-muted: #b3b3b3;
+  --text-subtle: #8a8a8a;
+
+  /* Accents (Spectrum Blue) */
+  --accent: #2680eb;   /* blue-600 */
+  --accent-hover: #1473e6; /* blue-700 */
+  --accent-quiet: #1b6fd6; /* used for outlines/focus */
+
+  /* Status */
+  --ok: #2ec27e;       /* green 500 */
+  --warn: #f0ab00;     /* amber 500 */
+  --err: #e34850;      /* red 600 */
+  --info: #2680eb;     /* blue 600 */
+  --idle: #8895a7;     /* desaturated */
+
+  /* Radii & Effects */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --shadow-1: 0 1px 2px rgba(0,0,0,0.4);
+  --shadow-2: 0 6px 16px rgba(0,0,0,0.28);
+  --focus-ring: 0 0 0 2px var(--accent-quiet);
+}
+
+/* ---------- Base ---------- */
+@font-face{font-family:"Source Sans 3"; src: local("Source Sans 3"), local("SourceSans3-Regular"); font-display: swap;}
+html,body{height:100%}
+body{
+  margin:0; background:var(--bg-canvas); color:var(--text);
+  font-family: "Source Sans 3", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+  line-height:1.4;
+}
+:focus-visible{outline:none; box-shadow: var(--focus-ring); border-radius: 4px}
+
+/* ---------- Header / App Bar ---------- */
+.header{
+  background: linear-gradient(180deg, #1b1b1b, #171717);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px; box-shadow: var(--shadow-1);
+}
+.header h1{ font-size: 20px; font-weight: 600; letter-spacing: .2px; display:flex; align-items:center; gap:8px; margin:0 }
+.real-api-badge{
+  background: var(--ok); color:#05170f; border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 700;
+}
+.controls{ gap:8px }
+
+/* ---------- Layout ---------- */
+.main-container{ height: calc(100vh - 56px) }
+.sidebar{
+  width: 420px; background: var(--bg-surface); border-right:1px solid var(--border); padding: 16px 18px; overflow:auto;
+}
+.content{ background: transparent; padding: 18px; }
+
+/* Scrollbars */
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background: #3a3a3a; border-radius: 8px}
+*::-webkit-scrollbar-track{background: #191919}
+
+/* ---------- Cards & Panels ---------- */
+.stat-card, .persona-card, .project-item, .work-item, .legend, .workflow-section-header, .workflow-section-content, .modal-content, .skills-tags{
+  background: var(--bg-surface); border:1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-1);
+}
+.stat-card:hover{ background: var(--bg-surface-2) }
+
+/* ---------- Typography utility ---------- */
+.stat-label{ color: var(--text-subtle); font-weight:600; letter-spacing:.04em }
+.stat-value{ color: var(--accent); font-weight:700 }
+.sidebar h3{ margin: 4px 0 10px 2px; color: var(--text) }
+.workflow-name{ color: var(--text) }
+.workflow-description{ background: var(--bg-subtle); border-color: var(--border); color: var(--text); }
+.workflow-section-title{ color: var(--text) }
+.workflow-section-count{ background: #2a2a2a; color: var(--text-muted) }
+
+/* ---------- Buttons ---------- */
+button, .btn-primary, .btn-secondary, .btn-icon, .workflow-btn, .filter-btn, .add-skill-btn{
+  appearance:none; border-radius: var(--radius-sm); border:1px solid var(--border);
+  background: #262626; color: var(--text); padding: 8px 14px; cursor:pointer; font-weight:600; font-size: 14px;
+  transition: background .15s ease, border-color .15s ease, transform .02s ease;
+}
+button:hover, .btn-primary:hover, .btn-secondary:hover, .btn-icon:hover, .workflow-btn:hover, .filter-btn:hover, .add-skill-btn:hover{
+  background: #2e2e2e; border-color: var(--border-strong);
+}
+button:active{ transform: translateY(1px) }
+
+/* Primary emphasis */
+.btn-primary, button#apiToggleBtn, button#factoryToggleBtn, .add-skill-btn{
+  background: var(--accent); border-color: transparent; color:#fff;
+}
+.btn-primary:hover, button#apiToggleBtn:hover, button#factoryToggleBtn:hover, .add-skill-btn:hover{ background: var(--accent-hover) }
+
+/* Destructive */
+.workflow-btn.delete{ border-color: var(--err); color: var(--err); background: transparent }
+.workflow-btn.delete:hover{ background: var(--err); color:#fff }
+
+/* Icon buttons */
+.btn-icon{ background: transparent; color: var(--text-subtle) }
+.btn-icon:hover{ background: #222; color: var(--text) }
+
+/* Save button state */
+button.save-btn{ background:#2a2a2a }
+button.save-btn.has-changes{ background: var(--ok); color:#07150e; border-color: transparent }
+button.save-btn.has-changes:hover{ filter: brightness(0.95) }
+
+/* Toggle switch */
+.toggle-slider{ background:#3a3a3a }
+.toggle-switch input:checked + .toggle-slider{ background: var(--ok) }
+
+/* ---------- Personas ---------- */
+.persona-card{ display:flex; align-items:center; gap:10px; padding:12px }
+.persona-card:hover{ border-color: var(--accent); transform:none }
+.persona-card.selected{ border-color: var(--accent); background:#1f2632 }
+.status-indicator{ width:10px; height:10px; border-radius:50% }
+.status-stopped{ background: var(--err) }
+.status-idle{ background: var(--idle) }
+.status-working{ background: var(--ok); animation: none }
+.status-error, .status-blocked{ background: var(--warn) }
+.status-not_implemented{ background:#666 }
+
+/* ---------- Workflows ---------- */
+.workflow-section{ margin-bottom: 18px }
+.workflow-section-header{ display:flex; align-items:center; gap:10px; padding: 10px 14px; cursor:pointer }
+.workflow-section-header:hover{ background: var(--bg-surface-2) }
+.workflow-section-toggle{ color: var(--text-subtle) }
+.workflow-section.collapsed .workflow-section-header{ border-radius: var(--radius-md) }
+.workflow-section-content{ padding: 14px; border-top: none; border-radius: 0 0 var(--radius-md) var(--radius-md) }
+.workflow-item{ background: var(--bg-surface); border-color: var(--border) }
+#coreWorkflows .workflow-item:not(:last-child)::after{ background: linear-gradient(90deg, transparent, #444, transparent) }
+.workflow-description code, .workflow-description pre, .form-group input, .form-group select, .add-skill-input{ background: var(--bg-subtle); border:1px solid var(--border); color: var(--text) }
+
+/* ---------- Forms ---------- */
+.form-group label{ color: var(--text-subtle) }
+.form-group input:focus, .form-group select:focus, textarea:focus{ outline: none; box-shadow: var(--focus-ring); border-color: var(--accent) }
+textarea{ background: var(--bg-subtle); border-color: var(--border); color: var(--text) }
+
+/* ---------- Tabs ---------- */
+.settings-tabs{ border-bottom: 1px solid var(--border) }
+.tab-button{ color: var(--text-subtle); padding: 10px 16px; border-bottom: 2px solid transparent; border-radius: 0 }
+.tab-button:hover{ background: #212121; color: var(--text) }
+.tab-button.active{ color: var(--accent); border-bottom-color: var(--accent) }
+
+/* ---------- Modal ---------- */
+.modal{ background: rgba(0,0,0,0.6) }
+.modal-content{ border-color: var(--border); }
+.modal-header h2{ color: var(--accent) }
+.close-button{ color: var(--text-subtle) }
+.close-button:hover{ color: var(--text) }
+
+/* ---------- Logs ---------- */
+.log-viewer{ background: var(--bg-subtle); border-color: var(--border) }
+.log-entry{ border-bottom: 1px solid #1f1f1f }
+.log-entry.info{ color: var(--info) }
+.log-entry.success{ color: var(--ok) }
+.log-entry.warning{ color: var(--warn) }
+.log-entry.error{ color: var(--err) }
+
+/* ---------- Legend & badges ---------- */
+.legend h4{ color: var(--accent) }
+.legend-color{ border: 1px solid rgba(255,255,255,0.1) }
+
+/* ---------- Utilities ---------- */
+.hidden{ display:none }
+.mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace }

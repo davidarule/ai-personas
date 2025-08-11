@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotfix RACI Matrix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.95;
+            font-size: 14px;
+        }
+        
+        .emergency-note {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 4px;
+        }
+        
+        .emergency-note strong {
+            color: #c62828;
+        }
+        
+        .sla-timer {
+            background: #fff3e0;
+            border: 2px solid #ff6b6b;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: #e65100;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-box {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .responsible { background: #28a745; }
+        .accountable { background: #dc3545; }
+        .consulted { background: #ffc107; color: #333; }
+        .informed { background: #17a2b8; }
+        
+        .matrix-wrapper {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+        
+        th.phase-header {
+            background: #ff6b6b;
+            color: white;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        th.role-header {
+            text-align: center;
+            background: #e9ecef;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            min-width: 38px;
+            max-width: 38px;
+            height: 140px;
+            padding: 8px 2px;
+            font-size: 12px;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        td.activity-cell {
+            text-align: left;
+            font-weight: 500;
+            background: #fafbfc;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            min-width: 300px;
+        }
+        
+        td.sub-activity {
+            padding-left: 30px;
+            font-weight: 400;
+            font-size: 12px;
+            color: #495057;
+        }
+        
+        .role-indicator {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 11px;
+            margin: 0 auto;
+        }
+        
+        tbody tr:hover {
+            background: #f1f3f5;
+        }
+        
+        tbody tr:hover td.activity-cell {
+            background: #e9ecef;
+        }
+        
+        .phase-separator {
+            border-top: 3px solid #ff6b6b;
+        }
+        
+        .parallel-indicator {
+            display: inline-block;
+            background: #9c27b0;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .time-indicator {
+            display: inline-block;
+            background: #ff9800;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        
+        .notes {
+            margin: 20px;
+            padding: 20px;
+            background: #e7f3ff;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .notes h3 {
+            margin: 0 0 10px 0;
+            color: #0066cc;
+            font-size: 16px;
+        }
+        
+        .notes ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .notes li {
+            margin: 5px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Hotfix Workflow - RACI Responsibility Matrix 🚨</h1>
+            <p>Workflow ID: wf2-hotfix | Version: 1.0.0 | EMERGENCY PROCESS</p>
+        </div>
+        
+        <div class="sla-timer">
+            ⏱️ MAXIMUM SLA: 4 HOURS FROM INCIDENT START TO RESOLUTION ⏱️
+        </div>
+        
+        <div class="emergency-note">
+            <strong>🔴 EMERGENCY PROTOCOL:</strong> This matrix represents the emergency hotfix process for P1 production incidents only. 
+            All normal procedures are bypassed. Authority is centralized with the Incident Manager and Emergency Approver. 
+            All actions are time-critical and executed in parallel where possible.
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box responsible">R</div>
+                <span><strong>Responsible:</strong> Does the work</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box accountable">A</div>
+                <span><strong>Accountable:</strong> Ultimately answerable</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box consulted">C</div>
+                <span><strong>Consulted:</strong> Provides input</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box informed">I</div>
+                <span><strong>Informed:</strong> Kept updated</span>
+            </div>
+        </div>
+        
+        <div class="matrix-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Workflow Phase / Activity</th>
+                        <th class="role-header">On-Call Engineer</th>
+                        <th class="role-header">Incident Manager</th>
+                        <th class="role-header">Developer/Fix Owner</th>
+                        <th class="role-header">Emergency Approver</th>
+                        <th class="role-header">War Room Team</th>
+                        <th class="role-header">Workflow System</th>
+                        <th class="role-header">Azure DevOps</th>
+                        <th class="role-header">Git Repository</th>
+                        <th class="role-header">CI/CD Pipeline</th>
+                        <th class="role-header">Deployment System</th>
+                        <th class="role-header">SRE/Monitoring</th>
+                        <th class="role-header">Customer Support</th>
+                        <th class="role-header">Executive Team</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Prerequisites Phase -->
+                    <tr>
+                        <td colspan="14" class="phase-header">INCIDENT DETECTION & TRIAGE (0-15 min)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Detect Production Incident</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Confirm P1 Incident</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Create War Room</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Rollback Decision</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    
+                    <!-- Immediate Response Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">IMMEDIATE RESPONSE (15-30 min)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Start Hotfix Workflow</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Notify All Teams <span class="parallel-indicator">PARALLEL</span></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Execute Rollback (if decided) <span class="parallel-indicator">PARALLEL</span></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Fix Development Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">EMERGENCY FIX DEVELOPMENT (30-90 min)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Create Hotfix Branch</td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Implement Emergency Fix</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Commit with Bypass Flags</td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Emergency Testing -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">EMERGENCY TESTING (30 min max)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Run Critical Tests <span class="parallel-indicator">PARALLEL</span> <span class="time-indicator">30min</span></td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Manual Verification <span class="parallel-indicator">PARALLEL</span> <span class="time-indicator">5min</span></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Emergency Approval -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">EMERGENCY APPROVAL & MERGE (15-30 min)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Create Emergency PR</td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Emergency Review & Approval</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Emergency Merge (Bypass All)</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    
+                    <!-- Deployment Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">EMERGENCY DEPLOYMENT (15-30 min)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Deploy Direct to Production</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Skip staging/canary</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Verification Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">VERIFICATION & MONITORING (1 hour)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Intensive Monitoring <span class="time-indicator">1hr</span></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Verify Incident Resolved</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Customer Impact Assessment</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Backport to Branches</td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Failure Scenario -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">FAILURE SCENARIO (IF NEEDED)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Execute Emergency Rollback</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Escalate to Executive</td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                    </tr>
+                    
+                    <!-- Post-Incident -->
+                    <tr class="phase-separator">
+                        <td colspan="14" class="phase-header">POST-INCIDENT</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">File Incident Report</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="notes">
+            <h3>🔥 Critical Differences from Normal Workflows:</h3>
+            <ul>
+                <li><strong>Time-Critical:</strong> 4-hour SLA from incident to resolution - every minute counts</li>
+                <li><strong>Authority Concentration:</strong> Emergency Approver has override authority on all decisions</li>
+                <li><strong>Bypass Everything:</strong> All normal checks, policies, and stages are bypassed</li>
+                <li><strong>Parallel Execution:</strong> Multiple activities run simultaneously to save time</li>
+                <li><strong>War Room Coordination:</strong> Dedicated team assembled for real-time collaboration</li>
+                <li><strong>Direct to Production:</strong> Skip staging, canary, and gradual rollouts</li>
+                <li><strong>Executive Visibility:</strong> Leadership informed throughout, accountable for escalations</li>
+            </ul>
+            
+            <h3>⚡ Emergency Protocols:</h3>
+            <ul>
+                <li><strong>Rollback First Option:</strong> Can stabilize system before attempting fix</li>
+                <li><strong>Minimal Testing:</strong> Only critical/smoke tests - 30 minutes maximum</li>
+                <li><strong>Single Approver:</strong> One emergency approver can override all normal approvals</li>
+                <li><strong>Customer Communication:</strong> Support team actively manages customer expectations</li>
+                <li><strong>Backporting:</strong> Fix must be propagated to all active branches after resolution</li>
+            </ul>
+            
+            <h3>📊 Key Metrics:</h3>
+            <ul>
+                <li><strong>Detection to War Room:</strong> < 15 minutes</li>
+                <li><strong>Fix Development:</strong> 30-90 minutes</li>
+                <li><strong>Testing:</strong> 30 minutes maximum</li>
+                <li><strong>Total Resolution:</strong> < 4 hours</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

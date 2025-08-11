@@ -1,0 +1,143 @@
+sequenceDiagram
+    participant User
+    participant Dev as Developer/Engineer<br/>(David Bot)
+    participant Analyzer as Work Item<br/>Analyzer
+    participant Env as Environment<br/>Setup
+    participant Router as Workflow<br/>Router
+    participant Feature as Feature Workflow<br/>(wf0)
+    participant Bug as Bug Fix Workflow<br/>(wf1)
+    participant Branch as Branch Creation<br/>(wf3)
+    participant Commit as Code Commit<br/>(wf4)
+    participant Quality as Quality<br/>Checker
+    participant PRCheck as PR Readiness<br/>(wf13)
+    participant PR as PR Creation<br/>(wf5)
+    participant ADO as Azure DevOps
+
+    User->>Dev: Assign Development Work<br/>(WORK_ITEM_ID, TYPE: [task|bug|feature|epic|user-story], ACTION)
+    
+    Note over Dev: Prerequisites Check<br/>✓ Access to work item<br/>✓ Appropriate permissions<br/>✓ Development environment setup
+    
+    Note over Dev: Analyze Work Item
+    Dev->>Analyzer: Analyze Work Item<br/>(ID: WORK_ITEM_ID, TYPE)
+    Analyzer->>Analyzer: Determine work type
+    Analyzer->>Analyzer: Assess complexity
+    Analyzer->>Analyzer: Choose development approach
+    
+    alt Work Type: feature/user-story
+        Analyzer-->>Dev: ACTION: implement-feature<br/>APPROACH: Full feature development
+    else Work Type: bug
+        Analyzer-->>Dev: ACTION: fix-bug<br/>APPROACH: Debug and fix
+    else Work Type: task
+        Analyzer-->>Dev: ACTION: implement-task<br/>APPROACH: Standard implementation
+    else Other Types
+        Analyzer-->>Dev: ACTION: standard-development<br/>APPROACH: General development
+    end
+    
+    Note over Dev: Setup Development Environment
+    Dev->>Env: Prepare Environment
+    Env->>Env: Git fetch origin
+    Env->>Env: Install dependencies<br/>(npm/yarn/pip)
+    Env->>Env: Configure IDE settings
+    Env-->>Dev: ENVIRONMENT_READY: true
+    
+    Note over Dev: Route to Appropriate Workflow
+    Dev->>Router: Execute based on ACTION
+    
+    alt ACTION: implement-feature
+        Note over Router: Feature Implementation Path
+        Router->>Feature: Initialize Feature Development<br/>(wf0-feature-development)
+        Feature-->>Router: Feature workflow started
+        
+        Router->>Branch: Create Feature Branch<br/>(wf3-branch-creation)
+        Branch->>Branch: Create branch from main
+        Branch-->>Router: Branch created
+        
+        Router->>Dev: Begin Implementation
+        Dev->>Dev: Implement business logic
+        Dev->>Dev: Write unit tests
+        Dev->>Dev: Update documentation
+        Dev-->>Router: CODE_IMPLEMENTED: true<br/>TESTS_WRITTEN: true
+        
+    else ACTION: fix-bug
+        Note over Router: Bug Fix Path
+        Router->>Bug: Initialize Bug Fix<br/>(wf1-bug-fix)
+        Bug->>Bug: Analyze bug
+        Bug->>Bug: Identify root cause
+        Bug-->>Router: Bug workflow started
+        
+        Router->>Branch: Create Bug Fix Branch<br/>(wf3-branch-creation)
+        Branch-->>Router: Branch created
+        
+        Router->>Dev: Implement Fix
+        Dev->>Dev: Debug issue
+        Dev->>Dev: Implement fix
+        Dev->>Dev: Write regression tests
+        Dev-->>Router: BUG_FIXED: true
+        
+    else ACTION: implement-task
+        Note over Router: Task Implementation Path
+        Router->>Branch: Create Task Branch<br/>(wf3-branch-creation)
+        Branch-->>Router: Branch created
+        
+        Router->>Dev: Implement Task
+        Dev->>Dev: Code implementation
+        Dev->>Dev: Add tests
+        Dev-->>Router: TASK_COMPLETE: true
+        
+    else ACTION: standard-development
+        Note over Router: Standard Development
+        Router->>Dev: Execute standard process
+        Dev->>Dev: Standard implementation
+    end
+    
+    Note over Dev: Code Quality Check
+    Dev->>Quality: Run Quality Checks
+    Quality->>Quality: Run linter
+    Quality->>Quality: Run formatter
+    Quality->>Quality: Check code coverage
+    Quality->>Quality: Run SonarQube scan
+    
+    alt Quality Issues Found
+        Quality-->>Dev: QUALITY_PASSED: false<br/>Issues: [list]
+        Dev->>Dev: Fix quality issues
+        Dev->>Quality: Re-run checks
+    else Quality Passed
+        Quality-->>Dev: QUALITY_PASSED: true
+    end
+    
+    Note over Dev: Commit Changes
+    Dev->>Commit: Execute Code Commit<br/>(wf4-code-commit)
+    Commit->>Commit: Stage changes
+    Commit->>Commit: Create commit
+    Commit-->>Dev: Changes committed
+    
+    Note over Dev: Create Pull Request
+    alt Quality Passed
+        Dev->>PRCheck: Check PR Readiness<br/>(wf13-pr-readiness-check)
+        PRCheck->>PRCheck: Verify tests pass
+        PRCheck->>PRCheck: Check coverage
+        PRCheck->>PRCheck: Validate standards
+        PRCheck-->>Dev: PR_READY: true
+        
+        Dev->>PR: Create Pull Request<br/>(wf5-pull-request-creation)
+        PR->>PR: Create PR
+        PR->>PR: Link to work item
+        PR->>PR: Add reviewers
+        PR-->>Dev: PR_NUMBER created
+    else Quality Failed
+        Dev->>Dev: Cannot create PR<br/>Fix issues first
+    end
+    
+    Note over Dev: Handoff for Testing
+    Dev->>ADO: Create Testing Task
+    ADO->>ADO: Task: "Test implementation"<br/>Assigned: qa-test-engineer<br/>Parent: WORK_ITEM_ID
+    ADO-->>Dev: Testing task created
+    
+    alt Success
+        Dev-->>User: Development Complete<br/>RESULT: Success<br/>PR_NUMBER: [number]<br/>ARTIFACTS: [generated items]
+        Note over User: Success Criteria Met:<br/>✓ Code implemented<br/>✓ Tests passing<br/>✓ Quality checks passed<br/>✓ PR created
+    else Error Occurred
+        Note over Dev: Error Handling (continue-on-error)
+        Dev->>Dev: Log error message
+        Dev-->>User: Partial completion<br/>(Error logged, work continues)
+    end

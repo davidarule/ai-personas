@@ -1,0 +1,110 @@
+# zap-automation-framework.yaml
+env:
+  contexts:
+    - name: "Trivia App DAST"
+      urls:
+        - "https://trivia.example.com"
+        - "https://api.trivia.example.com"
+      authentication:
+        method: "json"
+        parameters:
+          loginUrl: "https://trivia.example.com/api/auth/login"
+          loginRequestData: '{"email":"{%username%}","password":"{%password%}"}'
+          loginPageUrl: "https://trivia.example.com/login"
+        users:
+          - name: "test-user"
+            username: "testuser@example.com"
+            password: "TestPassword123!"
+        verification:
+          method: "response"
+          loggedInRegex: "\\Q\"access_token\"\\E"
+          loggedOutRegex: "\\Q\"error\"\\E"
+      sessionManagement:
+        method: "cookie"
+        parameters:
+          sessionTokens: ["session", "jwt_token"]
+      technology:
+        include:
+          - "JavaScript"
+          - "PostgreSQL"
+          - "Python"
+        exclude:
+          - "ASP"
+          - "PHP"
+
+jobs:
+  - type: passiveScan-config
+    parameters:
+      maxAlertsPerRule: 10
+      scanOnlyInScope: true
+      enableTags: true
+      disableAllRules: false
+      
+  - type: spider
+    parameters:
+      maxDuration: 60
+      maxDepth: 10
+      maxChildren: 20
+      acceptCookies: true
+      handleODataParametersVisited: true
+      handleParameters: "USE_ALL"
+      maxParseSizeBytes: 2621440
+      parseComments: true
+      parseGit: true
+      parseRobotsTxt: true
+      parseSVNEntries: true
+      parseSitemapXml: true
+      postForm: true
+      processForm: true
+      requestWaitTime: 200
+      sendRefererHeader: true
+      userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+      
+  - type: spiderAjax
+    parameters:
+      maxDuration: 60
+      maxCrawlDepth: 10
+      numberOfBrowsers: 1
+      browserId: "chrome-headless"
+      clickDefaultElems: true
+      clickElemsOnce: true
+      randomInputs: true
+      
+  - type: passiveScan-wait
+    parameters:
+      maxDuration: 10
+      
+  - type: activeScan
+    parameters:
+      maxRuleDurationInMins: 10
+      maxScanDurationInMins: 120
+      addQueryParam: true
+      defaultPolicy: "API-Scan"
+      delayInMs: 0
+      handleAntiCSRFTokens: true
+      injectPluginIdInHeader: true
+      scanHeadersAllRequests: true
+      
+  - type: report
+    parameters:
+      template: "traditional-html-plus"
+      reportDir: "/zap/reports"
+      reportFile: "ZAP_DAST_Report"
+      reportTitle: "Trivia App DAST Results"
+      reportDescription: "Dynamic Application Security Testing Results"
+      displayReport: false
+    risks:
+      - high
+      - medium
+      - low
+      - informational
+    confidences:
+      - high
+      - medium
+      - low
+      - falsepositive
+      
+  - type: outputSummary
+    parameters:
+      format: "NONE"
+      summaryFile: "/zap/reports/summary.json"

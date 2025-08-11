@@ -1,0 +1,160 @@
+{
+  "version": "2.0",
+  "updated_at": "2025-08-07T14:33:19.028406",
+  "instances": [
+    {
+      "instance_id": "software-architect-steve-20250807143319",
+      "persona_type": "software-architect",
+      "first_name": "Steve",
+      "last_name": "Bot",
+      "email": "steve@company.com",
+      "skills": [
+        "System Architecture",
+        "Security Architecture",
+        "Threat Modeling",
+        "Cloud Design"
+      ],
+      "mcp_servers": [
+        "memory",
+        "filesystem",
+        "github",
+        "context7"
+      ],
+      "tools": [
+        "git",
+        "vscode",
+        "docker",
+        "terraform"
+      ],
+      "enabled": true,
+      "created_at": "2025-08-07T14:33:19.028416",
+      "metrics": {
+        "work_items_processed": 0,
+        "last_active": null
+      }
+    },
+    {
+      "instance_id": "qa-test-engineer-kav-20250807143319",
+      "persona_type": "qa-test-engineer",
+      "first_name": "Kav",
+      "last_name": "Bot",
+      "email": "kav@company.com",
+      "skills": [
+        "Security Testing",
+        "SAST",
+        "DAST",
+        "Test Automation"
+      ],
+      "mcp_servers": [
+        "memory",
+        "filesystem",
+        "github"
+      ],
+      "tools": [
+        "jest",
+        "pytest",
+        "selenium",
+        "burpsuite"
+      ],
+      "enabled": true,
+      "created_at": "2025-08-07T14:33:19.028422",
+      "metrics": {
+        "work_items_processed": 0,
+        "last_active": null
+      }
+    },
+    {
+      "instance_id": "devsecops-engineer-deso-20250807143319",
+      "persona_type": "devsecops-engineer",
+      "first_name": "Deso",
+      "last_name": "Bot",
+      "email": "deso@company.com",
+      "skills": [
+        "CI/CD",
+        "Container Security",
+        "Infrastructure as Code"
+      ],
+      "mcp_servers": [
+        "memory",
+        "filesystem",
+        "github",
+        "postgres"
+      ],
+      "tools": [
+        "jenkins",
+        "docker",
+        "kubernetes",
+        "terraform"
+      ],
+      "enabled": true,
+      "created_at": "2025-08-07T14:33:19.028427",
+      "metrics": {
+        "work_items_processed": 0,
+        "last_active": null
+      }
+    },
+    {
+      "instance_id": "frontend-developer-frendy-20250807143319",
+      "persona_type": "frontend-developer",
+      "first_name": "Frendy",
+      "last_name": "Bot",
+      "email": "frendy@company.com",
+      "skills": [
+        "React",
+        "TypeScript",
+        "UI Development",
+        "Web Performance"
+      ],
+      "mcp_servers": [
+        "memory",
+        "filesystem",
+        "github",
+        "context7"
+      ],
+      "tools": [
+        "vscode",
+        "webpack",
+        "jest",
+        "chrome-devtools"
+      ],
+      "enabled": true,
+      "created_at": "2025-08-07T14:33:19.028431",
+      "metrics": {
+        "work_items_processed": 0,
+        "last_active": null
+      }
+    },
+    {
+      "instance_id": "backend-developer-backy-20250807143319",
+      "persona_type": "backend-developer",
+      "first_name": "Backy",
+      "last_name": "Bot",
+      "email": "backy@company.com",
+      "skills": [
+        "Python",
+        "Node.js",
+        "API Design",
+        "Database Design"
+      ],
+      "mcp_servers": [
+        "memory",
+        "filesystem",
+        "github",
+        "postgres",
+        "context7"
+      ],
+      "tools": [
+        "vscode",
+        "postman",
+        "docker",
+        "pytest"
+      ],
+      "enabled": true,
+      "created_at": "2025-08-07T14:33:19.028435",
+      "metrics": {
+        "work_items_processed": 0,
+        "last_active": null
+      }
+    }
+  ]
+}

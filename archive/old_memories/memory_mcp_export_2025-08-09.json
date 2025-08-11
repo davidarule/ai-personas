@@ -1,0 +1,135 @@
+{
+  "export_date": "2025-08-09",
+  "entities": [
+    {
+      "name": "Core Files to Keep",
+      "entityType": "Essential Files",
+      "observations": [
+        "API Implementation:",
+        "  - src/api/simple_factory_api.py: Current working API",
+        "  - real_dashboard.py: Working dashboard connected to API",
+        "Persona Processors:",
+        "  - src/personas/processors/*.py: All processor implementations",
+        "  - Especially steve_processor.py and kav_processor_enhanced.py",
+        "Configuration:",
+        "  - test_config.json: Azure DevOps configuration",
+        "  - README.md: Project documentation",
+        "Generated Outputs:",
+        "  - outputs/ directory: All generated artifacts from personas",
+        "Tasks and Reviews:",
+        "  - tasks/ directory: Review assignments and PR tasks"
+      ]
+    },
+    {
+      "name": "Missing Components for Full Automation",
+      "entityType": "Technical Gap Analysis",
+      "observations": [
+        "ProcessorFactory (Missing):",
+        "  - Should instantiate all persona processors",
+        "  - Manage persona lifecycle and state",
+        "  - Coordinate work distribution",
+        "WorkItemRouter (Missing):",
+        "  - Poll Azure DevOps for new work items",
+        "  - Analyze work items and route to appropriate personas",
+        "  - Track work item status and completion",
+        "MultiProjectClient (Missing):",
+        "  - Handle multiple Azure DevOps projects",
+        "  - Manage cross-project work items",
+        "  - Coordinate team assignments",
+        "State Management (Incomplete):",
+        "  - projects/*/personas/*/state directories exist but unused",
+        "  - No persistence of persona state between runs",
+        "  - No tracking of work history or metrics"
+      ]
+    },
+    {
+      "name": "Files to Archive",
+      "entityType": "TechnicalDebt",
+      "observations": [
+        "Mock dashboards: dashboards/mock_dashboard_*.py",
+        "Test scripts in root: test_*.py, fix_*.py, create_*.py, execute_*.py",
+        "Duplicate/obsolete persona processors: steve_processor_enhanced.py, kav_processor_enhanced.py in root",
+        "Old task files: task_personas_review_pr.py, assign_reviewers_*.py",
+        "Node modules and package files not used by Python system",
+        "Various simulation and PR management scripts"
+      ]
+    },
+    {
+      "name": "AI_Personas_Technical_Architecture",
+      "entityType": "Architecture",
+      "observations": [
+        "Vision: Automated AI factory with personas processing Azure DevOps work items",
+        "Reality: Manual triggering with 2 working personas, others show as not_implemented",
+        "Working: Steve generates docs, Kav does security testing, basic PR creation",
+        "Architecture: Factory pattern with ProcessorFactory managing persona instances",
+        "Missing components: WorkItemRouter for auto-routing, MultiProjectClient for cross-project",
+        "Persona lifecycle: Instantiate -> process_work_item() -> generate artifacts -> create PR",
+        "State management incomplete: directories exist at projects/*/personas/*/state but unused",
+        "Each persona extends BaseProcessor with specialized process_work_item implementation"
+      ]
+    },
+    {
+      "name": "AI_Personas_Known_Issues",
+      "entityType": "Issues",
+      "observations": [
+        "Azure DevOps API returns 400 errors on some calls - non-critical, ignore",
+        "PR reviewer identity requires manual discovery - use different IDs than Graph API",
+        "Personas show 'undefined' if API not running - start API first",
+        "CORS issues if services started in wrong order - kill all and restart",
+        "dashboard.html is obsolete but still exists - causes confusion with mock data",
+        "Some fix_*.py scripts in root failed - should be archived",
+        "Log files grow large - need periodic cleanup",
+        "No automatic work item polling - must manually add work items"
+      ]
+    },
+    {
+      "name": "AI_Personas_Overhaul_Plan",
+      "entityType": "ImplementationPlan",
+      "observations": [
+        "Transform current static persona system into dynamic configurable system with 25 base persona types",
+        "Phase 1: Backend Architecture (Days 1-3) - Create PersonaConfig class, 25 persona type classes, update processor architecture",
+        "Phase 2: API Endpoints (Days 3-4) - Persona management, MCP server config, tools config APIs",
+        "Phase 3: Frontend UI (Days 4-6) - Dynamic left panel, new Settings tabs for Personas/MCP/Tools",
+        "Phase 4: Workflow Integration (Days 6-7) - Load persona workflows, integrate tools and MCP filtering",
+        "Phase 5: Data Migration (Days 7-8) - Migrate existing personas, create defaults",
+        "Key new files: /src/personas/models/persona.py, /src/personas/types/*.py (25 files), persona_manager.py",
+        "Modified files: processor_factory.py, real_factory_api.py, index.html, settings.json",
+        "Each persona has: first_name, last_name, email, persona_type, skills[], mcp_servers[], tools[], workflow_id, claude_md",
+        "Personas will call existing workflows (wf0-wf17) instead of reimplementing functionality",
+        "User will provide 25 persona workflow YAML files from Claude Desktop in standard format",
+        "Left panel will have dynamic personas with + button to add new instances",
+        "Settings will have Personas tab (edit 25 types), MCP Servers tab, and Tools tab"
+      ]
+    },
+    {
+      "name": "AI_Personas_V2_Dashboard_Update_Plan",
+      "entityType": "DevelopmentPlan",
+      "observations": [
+        "Plan Status: Approved by user on 2025-01-08",
+        "Purpose: Update dashboard to support new 25-persona dynamic system",
+        "Phase 1: Side Panel Enhancement",
+        "- Add '+' button at top of persona list for creating new instances",
+        "- Replace static 13 personas with dynamic persona instance list",
+        "- Show persona type and instance name (e.g., 'DevSecOps Engineer - Sarah')",
+        "- Add instance status indicators (active/inactive)",
+        "- Persona cards with avatar, quick actions (Edit, Delete, Toggle Active)",
+        "Phase 2: Settings UI Overhaul",
+        "- Replace existing tabs (Azure DevOps, System, Workflows) with: Personas, MCP Servers, Tools",
+        "- Personas Tab: List 25 types, manage instances, create form with name/email/skills/tools/MCP customization",
+        "- MCP Servers Tab: List servers, toggle enable/disable, test connections, show persona usage",
+        "- Tools Tab: Display by category from tool-categories.md, global toggles, per-tool config, search/filter",
+        "Phase 3: API Integration",
+        "- Implement all /api/personas/* endpoints",
+        "- Add /api/mcp-servers and /api/tools endpoints",
+        "- WebSocket support for real-time updates",
+        "Phase 4: Migration & Testing",
+        "- Run migrate_to_new_persona_system.py",
+        "- Create default Steve & Kav instances",
+        "- Test all 25 persona types, instance CRUD, settings persistence",
+        "Implementation Order: 1) Update sidebar, 2) Settings tabs, 3) Personas tab, 4) MCP/Tools tabs, 5) API v2.0, 6) Test, 7) Deploy",
+        "Key files: index.html (dashboard), real_factory_api.py (API), persona_manager.py, NEW_PERSONA_SYSTEM.md",
+        "Reference docs: persona-skills.md, persona-tool-recommendations.md, tool-categories.md"
+      ]
+    }
+  ]
+}

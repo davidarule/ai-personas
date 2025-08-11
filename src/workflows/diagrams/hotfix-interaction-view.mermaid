@@ -1,0 +1,154 @@
+sequenceDiagram
+    participant OnCall as On-Call Engineer
+    participant IncMgr as Incident Manager
+    participant Dev as Developer/<br/>Fix Owner
+    participant System as Workflow System<br/>(wf2-hotfix)
+    participant Approver as Emergency Approver/<br/>Engineering Leader
+    participant WarRoom as War Room Team
+    participant ADO as Azure DevOps
+    participant Git as Git Repository
+    participant CI as CI/CD Pipeline
+    participant Deploy as Deployment System
+    participant Monitor as Monitoring/<br/>SRE Team
+    participant Support as Customer Support
+    participant Exec as Executive Team
+    
+    Note over OnCall, Monitor: INCIDENT DETECTED
+    Monitor->>OnCall: P1 Alert: Production Down
+    OnCall->>IncMgr: Escalate P1 Incident
+    IncMgr->>WarRoom: Create War Room Channel
+    IncMgr->>Approver: Request Emergency Approval
+    Approver->>IncMgr: Approval Granted
+    
+    rect rgb(255, 240, 240)
+        Note left of IncMgr: INCIDENT TRIAGE (First 15 min)
+        IncMgr->>WarRoom: Assemble Team:<br/>- On-call engineer<br/>- Senior developers<br/>- SRE team<br/>- Support lead
+        WarRoom->>WarRoom: Assess situation<br/>Determine root cause
+        WarRoom->>IncMgr: Decision: Rollback first?
+        
+        alt Rollback First
+            IncMgr->>Dev: Execute rollback then fix
+        else Fix Forward
+            IncMgr->>Dev: Proceed directly with fix
+        end
+    end
+    
+    Dev->>System: Initiate Hotfix Workflow<br/>(INCIDENT_ID, P1, ROLLBACK_FIRST, APPROVER_EMAIL)
+    
+    rect rgb(255, 248, 240)
+        Note left of System: IMMEDIATE RESPONSE (Parallel)
+        par Notifications
+            System->>ADO: Broadcast Emergency
+            ADO->>WarRoom: Alert: P1 Hotfix Started
+            ADO->>Exec: Executive Notification
+            ADO->>Support: Customer Communication Prep
+        and Optional Stabilization
+            alt Rollback First = true
+                System->>Deploy: Emergency Rollback<br/>(to last_known_good)
+                Deploy->>Monitor: Verify Stability
+                Monitor-->>WarRoom: System Stabilized
+                Support->>Support: Notify customers:<br/>"Temporary rollback in progress"
+            end
+        end
+    end
+    
+    rect rgb(240, 248, 255)
+        Note left of Dev: EMERGENCY FIX DEVELOPMENT
+        System->>Git: Create hotfix branch<br/>(from main)
+        Git-->>Dev: Branch ready
+        
+        Dev->>Dev: Implement emergency fix<br/>(Focus: Minimal, surgical change)
+        Dev->>Git: Commit with bypass flags
+        System->>Git: Force commit (bypass hooks)
+        
+        WarRoom->>Dev: Status update request
+        Dev->>WarRoom: Fix implemented, testing now
+    end
+    
+    rect rgb(240, 255, 240)
+        Note left of System: EMERGENCY TESTING (30 min max)
+        par Parallel Testing
+            Dev->>CI: Run critical tests only
+            CI->>CI: Execute smoke tests
+            CI-->>Dev: Test results
+        and Manual Verification
+            Dev->>WarRoom: Manual test in progress
+            WarRoom->>WarRoom: Verify fix locally
+            WarRoom-->>Dev: Manual check complete
+        end
+        
+        alt Tests Failed
+            CI-->>WarRoom: CRITICAL: Tests failing
+            WarRoom->>IncMgr: Fix not viable
+            IncMgr->>Dev: Abort and reassess
+        else Tests Passed
+            CI-->>WarRoom: Tests passing ✓
+        end
+    end
+    
+    rect rgb(255, 240, 255)
+        Note left of System: EMERGENCY APPROVAL
+        Dev->>System: Create Emergency PR
+        System->>ADO: Create PR (bypass all policies)
+        ADO->>Approver: URGENT: Emergency PR Review
+        
+        Approver->>ADO: Review changes
+        Approver->>WarRoom: Confirm fix approach
+        WarRoom->>Approver: Fix validated by team
+        
+        Approver->>ADO: APPROVE (Emergency Override)
+        ADO-->>System: PR Approved
+        
+        System->>ADO: Emergency Merge
+        ADO->>Git: Rebase and merge immediately
+        Git-->>System: Merge complete
+    end
+    
+    rect rgb(255, 255, 240)
+        Note left of System: PRODUCTION DEPLOYMENT
+        System->>Deploy: Emergency Deploy<br/>(Skip staging, Skip canary)
+        Deploy->>Deploy: Direct to production
+        
+        Deploy->>Monitor: Deployment in progress
+        Monitor->>Monitor: High-alert monitoring
+        
+        Deploy-->>WarRoom: Deployment complete
+        WarRoom->>Support: Prepare for verification
+    end
+    
+    rect rgb(240, 240, 255)
+        Note left of System: VERIFICATION & MONITORING
+        System->>Monitor: Begin intensive monitoring<br/>(1 hour, critical threshold)
+        
+        Monitor->>Monitor: Check:<br/>- Incident resolved?<br/>- Error rates normal?<br/>- Performance stable?
+        
+        Support->>Support: Check customer impact
+        Support->>WarRoom: Customer systems recovering
+        
+        WarRoom->>IncMgr: Verification in progress
+        
+        alt Hotfix Successful
+            Monitor-->>System: All metrics healthy ✓
+            IncMgr->>ADO: Mark incident RESOLVED
+            IncMgr->>Exec: Incident resolved < 4h SLA
+            Support->>Support: Send all-clear to customers
+            
+            Note over Dev: Begin backporting
+            System->>Git: Cherry-pick to develop/release
+            Git->>Dev: Backport PRs created
+            Dev->>Dev: Schedule normal review
+        else Hotfix Failed or New Issues
+            Monitor-->>WarRoom: CRITICAL: New issues detected!
+            WarRoom->>IncMgr: Hotfix unsuccessful
+            IncMgr->>System: EXECUTE ROLLBACK
+            
+            System->>Deploy: Emergency rollback
+            Deploy-->>WarRoom: Rolled back
+            
+            IncMgr->>Exec: ESCALATION: Fix failed
+            Exec->>IncMgr: Convene emergency meeting
+            Support->>Support: Update customers on status
+        end
+    end
+    
+    Note over OnCall, Exec: Post-Incident:<br/>- File incident report<br/>- Schedule RCA meeting<br/>- Update runbooks<br/>- Customer follow-up

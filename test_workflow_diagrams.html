@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Workflow Diagrams</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .workflow-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #2a2a2a;
+        }
+        .workflow-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn-icon {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.2s;
+        }
+        .btn-icon:hover {
+            background: #2563eb;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #10b981;
+            color: #fff;
+        }
+        .error {
+            background: #ef4444;
+            color: #fff;
+        }
+        .pending {
+            background: #f59e0b;
+            color: #fff;
+        }
+        h1 {
+            text-align: center;
+            color: #3b82f6;
+        }
+        .test-result {
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .instructions {
+            background: #1f2937;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .instructions h3 {
+            color: #3b82f6;
+            margin-top: 0;
+        }
+        .instructions ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 5px 0;
+        }
+        code {
+            background: #374151;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Workflow Diagram Test Page</h1>
+    
+    <div class="instructions">
+        <h3>📋 Test Instructions</h3>
+        <ul>
+            <li>This page tests the workflow diagram functionality for workflows wf0, wf1, and wf2</li>
+            <li>Each workflow should have 3 diagram types: <code>orchestration</code>, <code>interaction</code>, and <code>raci</code></li>
+            <li>Click the "Test All Diagrams" button for each workflow to verify API endpoints</li>
+            <li>The icon buttons simulate what appears in the main dashboard</li>
+            <li>Make sure the API is running on port 8080 before testing</li>
+        </ul>
+    </div>
+
+    <!-- Feature Development Workflow (wf0) -->
+    <div class="workflow-section">
+        <div class="workflow-header">
+            <div>
+                <h2>Feature Development Workflow (wf0)</h2>
+                <p>Master workflow for new feature development</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="testDiagram('wf0', 'orchestration')" title="View orchestration diagram">
+                    📊
+                </button>
+                <button class="btn-icon" onclick="testDiagram('wf0', 'interaction')" title="View interaction diagram">
+                    👥
+                </button>
+                <button class="btn-icon" onclick="testDiagram('wf0', 'raci')" title="View RACI matrix">
+                    📋
+                </button>
+            </div>
+        </div>
+        <button onclick="testAllDiagrams('wf0')">Test All Diagrams</button>
+        <div id="wf0-results"></div>
+    </div>
+
+    <!-- Bug Fix Workflow (wf1) -->
+    <div class="workflow-section">
+        <div class="workflow-header">
+            <div>
+                <h2>Bug Fix Workflow (wf1)</h2>
+                <p>Master workflow for bug fixes</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="testDiagram('wf1', 'orchestration')" title="View orchestration diagram">
+                    📊
+                </button>
+                <button class="btn-icon" onclick="testDiagram('wf1', 'interaction')" title="View interaction diagram">
+                    👥
+                </button>
+                <button class="btn-icon" onclick="testDiagram('wf1', 'raci')" title="View RACI matrix">
+                    📋
+                </button>
+            </div>
+        </div>
+        <button onclick="testAllDiagrams('wf1')">Test All Diagrams</button>
+        <div id="wf1-results"></div>
+    </div>
+
+    <!-- Hotfix Workflow (wf2) -->
+    <div class="workflow-section">
+        <div class="workflow-header">
+            <div>
+                <h2>Hotfix Workflow (wf2)</h2>
+                <p>Master workflow for emergency hotfixes</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn-icon" onclick="testDiagram('wf2', 'orchestration')" title="View orchestration diagram">
+                    📊
+                </button>
+                <button class="btn-icon" onclick="testDiagram('wf2', 'interaction')" title="View interaction diagram">
+                    👥
+                </button>
+                <button class="btn-icon" onclick="testDiagram('wf2', 'raci')" title="View RACI matrix">
+                    📋
+                </button>
+            </div>
+        </div>
+        <button onclick="testAllDiagrams('wf2')">Test All Diagrams</button>
+        <div id="wf2-results"></div>
+    </div>
+
+    <script>
+        async function testDiagram(workflowId, diagramType) {
+            console.log(`Testing ${workflowId} - ${diagramType}`);
+            try {
+                const response = await fetch(`http://localhost:8080/api/workflows/${workflowId}/diagrams/${diagramType}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert(`✅ ${diagramType} diagram loaded successfully!\n\nTitle: ${data.metadata?.title || 'No title'}\nFormat: ${data.format}`);
+                } else {
+                    alert(`❌ Failed to load ${diagramType} diagram:\n${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                alert(`❌ Error testing ${diagramType}:\n${error.message}`);
+            }
+        }
+
+        async function testAllDiagrams(workflowId) {
+            const resultsDiv = document.getElementById(`${workflowId}-results`);
+            resultsDiv.innerHTML = '<div class="status pending">Testing diagrams...</div>';
+            
+            const diagramTypes = ['orchestration', 'interaction', 'raci'];
+            const results = [];
+            
+            for (const type of diagramTypes) {
+                try {
+                    const response = await fetch(`http://localhost:8080/api/workflows/${workflowId}/diagrams/${type}`);
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        results.push(`
+                            <div class="status success">
+                                ✅ ${type}: ${data.metadata?.title || 'Loaded successfully'}
+                            </div>
+                        `);
+                    } else {
+                        results.push(`
+                            <div class="status error">
+                                ❌ ${type}: ${data.error || 'Failed to load'}
+                            </div>
+                        `);
+                    }
+                } catch (error) {
+                    results.push(`
+                        <div class="status error">
+                            ❌ ${type}: Connection error - ${error.message}
+                        </div>
+                    `);
+                }
+            }
+            
+            // Also test the list endpoint
+            try {
+                const response = await fetch(`http://localhost:8080/api/workflows/${workflowId}/diagrams`);
+                const data = await response.json();
+                
+                if (response.ok && data.diagrams) {
+                    results.push(`
+                        <div class="status success">
+                            ✅ List endpoint: Found ${data.diagrams.length} diagrams
+                            <div class="test-result">
+                                ${JSON.stringify(data.diagrams.map(d => ({ type: d.diagram_type, format: d.format })), null, 2)}
+                            </div>
+                        </div>
+                    `);
+                } else {
+                    results.push(`
+                        <div class="status error">
+                            ❌ List endpoint: ${data.error || 'Failed to fetch'}
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                results.push(`
+                    <div class="status error">
+                        ❌ List endpoint: Connection error - ${error.message}
+                    </div>
+                `);
+            }
+            
+            resultsDiv.innerHTML = results.join('');
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('Workflow Diagram Test Page Loaded');
+            console.log('API should be running on http://localhost:8080');
+            
+            // Check if API is running
+            fetch('http://localhost:8080/api/status')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ API is running');
+                    } else {
+                        console.error('❌ API returned error status');
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ API is not running:', error.message);
+                    alert('⚠️ API is not running on port 8080!\n\nPlease start the API first:\ncd /opt/ai-personas/src/api && python3 real_factory_api.py');
+                });
+        });
+    </script>
+</body>
+</html>

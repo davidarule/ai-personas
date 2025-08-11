@@ -1,0 +1,180 @@
+sequenceDiagram
+    participant PM as Product Manager
+    participant SA as Systems Architect<br/>(Simon Bot)
+    participant Feature as Feature Workflow<br/>(wf0 - 2-5 days)
+    participant Bug as Bug Fix Workflow<br/>(wf1 - 1-3 days)
+    participant Hotfix as Hotfix Workflow<br/>(wf2 - 4 hours)
+    participant Dev as Developer
+    participant Review as Code Reviewer
+    participant EM as Emergency Approver
+    participant ADO as Azure DevOps
+    
+    Note over PM, ADO: INTEGRATION PATTERNS WITH MASTER WORKFLOWS
+    
+    rect rgb(240, 248, 255)
+        Note over Feature: FEATURE DEVELOPMENT INTEGRATION (wf0)
+        
+        PM->>ADO: Create Feature Request<br/>(FEATURE_ID, DESCRIPTION, PRIORITY)
+        
+        Note over SA: PRE-DEVELOPMENT ARCHITECTURE
+        alt Feature Requires Architecture
+            ADO->>SA: Trigger Architecture Workflow<br/>(WORK_ITEM_ID: FEATURE_ID, TYPE: feature)
+            SA->>SA: Analyze requirements<br/>Assess complexity
+            
+            par Architecture Activities
+                SA->>SA: System Design
+                SA->>SA: Integration Planning
+                SA->>SA: Infrastructure Design
+            end
+            
+            SA->>ADO: Create Architecture Tasks<br/>• System implementation<br/>• Infrastructure setup<br/>• Integration development
+            SA-->>Feature: Architecture Ready<br/>SYSTEM_DESIGN, BLUEPRINTS
+        end
+        
+        Feature->>Feature: Initialize Feature Branch<br/>(wf3-branch-creation)
+        
+        Note over Feature: DEVELOPMENT CYCLE INTEGRATION
+        loop Development Iterations
+            Dev->>Feature: Implement Changes
+            
+            alt Architecture Question
+                Dev->>SA: Architecture clarification needed
+                SA->>SA: Consult design documents
+                SA-->>Dev: Guidance provided
+            end
+            
+            Feature->>Feature: Commit Changes (wf4)
+            Feature->>Feature: Check PR Readiness (wf13)
+        end
+        
+        Feature->>Feature: Create Pull Request (wf5)
+        
+        Note over Review: ARCHITECTURE REVIEW IN PR
+        Review->>SA: Architecture compliance check
+        SA->>SA: Review against standards
+        alt Non-compliant
+            SA-->>Review: Architecture issues found
+            Review->>Dev: Request changes
+            Dev->>SA: Propose alternative
+            SA-->>Dev: Approved approach
+        else Compliant
+            SA-->>Review: Architecture approved ✓
+        end
+        
+        Feature->>Feature: Merge (wf8)
+        Feature->>Feature: Post-merge monitoring (wf9)
+        
+        SA->>SA: Update architecture repository<br/>Document implemented design
+    end
+    
+    rect rgb(255, 248, 240)
+        Note over Bug: BUG FIX INTEGRATION (wf1)
+        
+        ADO->>Bug: Bug Report Filed<br/>(BUG_ID, SEVERITY: P1/P2/P3)
+        
+        Note over SA: ROOT CAUSE ANALYSIS
+        alt Architecture-Related Bug
+            Bug->>SA: Consult for root cause<br/>(BUG_ID, TYPE: bug)
+            SA->>SA: Analyze system design<br/>Check integration points
+            
+            alt Design Flaw Found
+                SA-->>Bug: Architecture issue identified
+                SA->>SA: Design correction needed
+                SA->>ADO: Create design fix task
+            else Implementation Issue
+                SA-->>Bug: Not architecture-related<br/>Implementation guidance provided
+            end
+        end
+        
+        Bug->>Bug: Initialize Bug Fix (wf3)
+        Bug->>Bug: Implement Fix (wf4)
+        
+        Note over SA: FIX VALIDATION
+        alt Fix Affects Architecture
+            Dev->>SA: Fix changes system design
+            SA->>SA: Assess impact
+            SA->>SA: Update architecture docs
+            SA-->>Dev: Impact assessment<br/>Approved with conditions
+        end
+        
+        Bug->>Bug: Create PR (wf5)
+        
+        alt P1 Bug - Fast Track
+            Bug->>SA: Emergency architecture review
+            SA->>SA: Expedited review (SLA: 2h)
+            SA-->>Bug: Fast-track approval
+        else Standard Bug
+            SA->>SA: Standard review process
+        end
+        
+        Bug->>Bug: Merge & Verify (wf8, wf9)
+        
+        alt Bug Fix Reveals Design Issue
+            Bug->>SA: Systemic issue found
+            SA->>SA: Create architecture improvement
+            SA->>ADO: Epic for redesign
+        end
+    end
+    
+    rect rgb(255, 240, 240)
+        Note over Hotfix: HOTFIX INTEGRATION (wf2) - EMERGENCY
+        
+        Note over Hotfix: 🚨 P1 INCIDENT DETECTED 🚨
+        
+        ADO->>Hotfix: Initiate Emergency Fix<br/>(INCIDENT_ID, P1)
+        
+        Note over SA: EMERGENCY ARCHITECTURE SUPPORT
+        par Emergency Response
+            Hotfix->>EM: Request emergency approval
+        and Architecture Consultation
+            Hotfix->>SA: URGENT: Architecture consult<br/>(INCIDENT_ID, TYPE: hotfix)
+            SA->>SA: Drop everything<br/>Join war room
+        end
+        
+        Note over SA: RAPID ASSESSMENT (15 min)
+        SA->>SA: Quick analysis<br/>• Identify affected systems<br/>• Assess integration impact<br/>• Determine safe fix approach
+        
+        alt Rollback Decision
+            SA->>Hotfix: Recommend rollback first<br/>Architecture impacts severe
+            Hotfix->>Hotfix: Execute rollback (wf11)
+        else Fix Forward
+            SA->>Hotfix: Safe fix path identified<br/>Minimal architecture impact
+        end
+        
+        Hotfix->>Hotfix: Create hotfix branch
+        
+        Note over SA: EMERGENCY FIX DESIGN (30 min)
+        Dev->>SA: Emergency fix approach
+        SA->>SA: Validate approach<br/>• Won't break integrations<br/>• Maintains system integrity
+        SA-->>Dev: Approved - proceed ✓
+        
+        Hotfix->>Hotfix: Emergency testing (30 min max)
+        
+        Note over SA: BYPASS APPROVAL
+        Hotfix->>SA: Emergency PR created
+        SA->>EM: Architecture sign-off for emergency
+        EM->>Hotfix: Override all checks - DEPLOY
+        
+        Hotfix->>Hotfix: Direct to production
+        
+        Note over SA: POST-INCIDENT ARCHITECTURE
+        Hotfix->>SA: Incident resolved
+        SA->>SA: Post-incident review<br/>• Document emergency changes<br/>• Update architecture<br/>• Plan permanent fix
+        
+        SA->>ADO: Create follow-up epic<br/>"Permanent architecture fix for INCIDENT_ID"
+    end
+    
+    rect rgb(240, 255, 240)
+        Note over SA: ARCHITECTURE GOVERNANCE ACROSS WORKFLOWS
+        
+        SA->>ADO: Architecture Metrics Dashboard
+        
+        Note right of SA: Tracking:<br/>• Feature architecture coverage<br/>• Bug root causes (design vs implementation)<br/>• Hotfix architecture impacts<br/>• Technical debt accumulated<br/>• Standards compliance rate
+        
+        SA->>SA: Weekly architecture review<br/>• Features: Design quality<br/>• Bugs: Systemic issues<br/>• Hotfixes: Emergency changes
+        
+        SA->>EM: Architecture health report
+        EM->>PM: Technical debt priorities
+    end
+    
+    Note over SA: Integration Summary:<br/>FEATURE: Full architecture lifecycle (design→implement→review)<br/>BUG: Root cause & impact analysis<br/>HOTFIX: Emergency consultation & post-incident review

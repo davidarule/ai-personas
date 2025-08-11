@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Development RACI Matrix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.95;
+            font-size: 14px;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-box {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .responsible { background: #28a745; }
+        .accountable { background: #dc3545; }
+        .consulted { background: #ffc107; color: #333; }
+        .informed { background: #17a2b8; }
+        
+        .matrix-wrapper {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        
+        thead {
+            background: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+        
+        th.phase-header {
+            background: #6c757d;
+            color: white;
+            text-align: center;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        th.role-header {
+            text-align: center;
+            background: #e9ecef;
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            min-width: 40px;
+            max-width: 40px;
+            height: 100px;
+            padding: 8px 2px;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+        }
+        
+        td.activity-cell {
+            text-align: left;
+            font-weight: 500;
+            background: #fafbfc;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            min-width: 250px;
+        }
+        
+        td.sub-activity {
+            padding-left: 30px;
+            font-weight: 400;
+            font-size: 13px;
+            color: #495057;
+        }
+        
+        .role-indicator {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 12px;
+            margin: 0 auto;
+        }
+        
+        tbody tr:hover {
+            background: #f1f3f5;
+        }
+        
+        tbody tr:hover td.activity-cell {
+            background: #e9ecef;
+        }
+        
+        .phase-separator {
+            border-top: 3px solid #6c757d;
+        }
+        
+        .notes {
+            margin: 20px;
+            padding: 20px;
+            background: #e7f3ff;
+            border-radius: 8px;
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .notes h3 {
+            margin: 0 0 10px 0;
+            color: #0066cc;
+            font-size: 16px;
+        }
+        
+        .notes ul {
+            margin: 10px 0;
+            padding-left: 25px;
+        }
+        
+        .notes li {
+            margin: 5px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Feature Development Workflow - RACI Responsibility Matrix</h1>
+            <p>Workflow ID: wf0-feature-development | Version: 1.0.0</p>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-box responsible">R</div>
+                <span><strong>Responsible:</strong> Does the work</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box accountable">A</div>
+                <span><strong>Accountable:</strong> Ultimately answerable</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box consulted">C</div>
+                <span><strong>Consulted:</strong> Provides input</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box informed">I</div>
+                <span><strong>Informed:</strong> Kept updated</span>
+            </div>
+        </div>
+        
+        <div class="matrix-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Workflow Phase / Activity</th>
+                        <th class="role-header">Developer</th>
+                        <th class="role-header">Tech Lead</th>
+                        <th class="role-header">Code Reviewer</th>
+                        <th class="role-header">Workflow System</th>
+                        <th class="role-header">Azure DevOps</th>
+                        <th class="role-header">Git Repository</th>
+                        <th class="role-header">CI/CD Pipeline</th>
+                        <th class="role-header">Product Owner</th>
+                        <th class="role-header">Monitoring Team</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Initialization Phase -->
+                    <tr>
+                        <td colspan="10" class="phase-header">INITIALIZATION PHASE</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Start Feature Development</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Validate Feature ID</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Create Feature Branch</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Development Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="10" class="phase-header">DEVELOPMENT CYCLE</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Implement Feature Changes</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Commit Code Changes</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Check PR Readiness</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Run Tests & Linting</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Validate Standards</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Pull Request Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="10" class="phase-header">PULL REQUEST PHASE</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Create Pull Request</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Review Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="10" class="phase-header">REVIEW CYCLE</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Review Code Changes</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Request Changes/Feedback</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Address Review Feedback</td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Approve Pull Request</td>
+                        <td></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                    </tr>
+                    
+                    <!-- Merge Phase -->
+                    <tr class="phase-separator">
+                        <td colspan="10" class="phase-header">MERGE & VALIDATION PHASE</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Merge Feature Branch</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Post-Merge Monitoring</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Monitor Performance</td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell sub-activity">• Track Error Rates</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                    </tr>
+                    
+                    <!-- Error Handling -->
+                    <tr class="phase-separator">
+                        <td colspan="10" class="phase-header">ERROR HANDLING (IF NEEDED)</td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Execute Rollback</td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                        <td><div class="role-indicator accountable">A</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator consulted">C</div></td>
+                    </tr>
+                    <tr>
+                        <td class="activity-cell">Notify Stakeholders</td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td><div class="role-indicator responsible">R</div></td>
+                        <td></td>
+                        <td></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                        <td><div class="role-indicator informed">I</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="notes">
+            <h3>Key Observations from the RACI Matrix:</h3>
+            <ul>
+                <li><strong>Developer:</strong> Primary responsibility for implementation and addressing feedback, but rarely accountable for decisions</li>
+                <li><strong>Tech Lead:</strong> Holds accountability (A) for most critical decisions and quality gates</li>
+                <li><strong>Code Reviewer:</strong> Critical role in the review phase but minimal involvement elsewhere</li>
+                <li><strong>Workflow System:</strong> Executes most automated processes and orchestrates the flow</li>
+                <li><strong>Azure DevOps:</strong> Central hub for work tracking and PR management</li>
+                <li><strong>CI/CD Pipeline:</strong> Responsible for all automated quality checks and deployments</li>
+                <li><strong>Product Owner:</strong> Consulted during requirements and informed of progress</li>
+                <li><strong>Monitoring Team:</strong> Only engaged post-deployment for operational health</li>
+            </ul>
+            
+            <h3>Patterns Identified:</h3>
+            <ul>
+                <li>Clear separation between execution (R) and accountability (A)</li>
+                <li>Multiple responsible parties for critical operations (merge, rollback)</li>
+                <li>Product Owner has minimal direct involvement but stays informed</li>
+                <li>Monitoring Team engagement is concentrated in post-merge phase</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

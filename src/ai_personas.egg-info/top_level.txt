@@ -1,0 +1,14 @@
+azure_devops
+communication
+config
+git_operations
+intelligence
+learning
+mcp
+memory
+metrics
+orchestration
+personas
+pr_management
+project_management
+work_queue

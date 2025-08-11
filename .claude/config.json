@@ -1,0 +1,24 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "/usr/bin/npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "/opt/ai-personas"
+      ]
+    },
+   "serena": {
+      "command": "/usr/bin/npx",
+      "args": [
+        "-y",
+        "github:oraios/serena"
+      ],
+      "env": {
+        "SERENA_PROJECT_ROOT": "/opt/ai-personas",
+        "SERENA_INDEX_DIR": "/opt/ai-personas/.mcp/serena-index"
+      }
+    }
+   }
+  }
+}

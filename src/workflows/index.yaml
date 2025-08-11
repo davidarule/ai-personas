@@ -1,0 +1,110 @@
+# Workflow Registry Index
+# This file provides a quick reference to all available workflows
+
+version: "1.0.0"
+last_updated: "2024-01-15"
+
+workflows:
+  master:
+    - id: feature-development
+      name: Feature Development Workflow
+      description: End-to-end feature development process
+      dependencies:
+        - branch-creation
+        - code-commit
+        - pr-readiness-check
+        - pull-request-creation
+        - pull-request-response
+        - merge-workflow
+        - post-merge-monitoring
+        - rollback-workflow
+    
+    - id: bug-fix
+      name: Bug Fix Workflow
+      description: End-to-end bug fixing process
+      dependencies:
+        - branch-creation
+        - code-commit
+        - pull-request-creation
+        - merge-workflow
+    
+    - id: hotfix
+      name: Hotfix Workflow
+      description: Emergency fix deployment process
+      dependencies:
+        - branch-creation
+        - code-commit
+        - pull-request-creation
+        - merge-workflow
+        - post-merge-monitoring
+
+  core:
+    - id: branch-creation
+      name: Branch Creation Workflow
+      description: Creates standardized branches with naming conventions
+      dependencies: []
+    
+    - id: code-commit
+      name: Code Commit Workflow
+      description: Standardized commit process with conventional commits
+      dependencies: []
+    
+    - id: pull-request-creation
+      name: Pull Request Creation Workflow
+      description: Creates and configures pull requests
+      dependencies:
+        - work-item-update
+    
+    - id: merge-workflow
+      name: Merge Workflow
+      description: Handles PR merging with various strategies
+      dependencies:
+        - work-item-update
+    
+    - id: post-merge-monitoring
+      name: Post-Merge Monitoring Workflow
+      description: Monitors deployments after merge
+      dependencies: []
+
+  support:
+    - id: conflict-resolution
+      name: Conflict Resolution Workflow
+      description: Handles merge conflicts systematically
+      dependencies: []
+    
+    - id: rollback-workflow
+      name: Rollback Workflow
+      description: Emergency rollback procedures
+      dependencies: []
+    
+    - id: work-item-update
+      name: Work Item Update Workflow
+      description: Updates Azure DevOps work items
+      dependencies: []
+    
+    - id: pr-readiness-check
+      name: PR Readiness Check Workflow
+      description: Validates if code is ready for PR
+      dependencies: []
+    
+    - id: pull-request-response
+      name: Pull Request Response Workflow
+      description: Handles PR review feedback
+      dependencies: []
+
+categories:
+  - name: Master Workflows
+    description: High-level orchestration workflows that coordinate multiple sub-workflows
+    workflows: [feature-development, bug-fix, hotfix]
+  
+  - name: Development Workflows
+    description: Core development processes
+    workflows: [branch-creation, code-commit, pull-request-creation]
+  
+  - name: Integration Workflows
+    description: Code integration and deployment
+    workflows: [merge-workflow, post-merge-monitoring, conflict-resolution]
+  
+  - name: Support Workflows
+    description: Supporting utilities and helpers
+    workflows: [work-item-update, pr-readiness-check, rollback-workflow]

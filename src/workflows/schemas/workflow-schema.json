@@ -1,0 +1,279 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Personas Workflow Schema",
+  "description": "Schema for defining executable workflows for AI personas",
+  "type": "object",
+  "required": ["metadata", "steps"],
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "required": ["id", "name", "version", "type", "description"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique identifier for the workflow"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable name for the workflow"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "description": "Semantic version of the workflow"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["master", "core", "support", "utility"],
+          "description": "Category of the workflow"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the workflow's purpose"
+        },
+        "author": {
+          "type": "string",
+          "description": "Author or team responsible for the workflow"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags for categorizing and searching workflows"
+        },
+        "averageDuration": {
+          "type": "string",
+          "description": "Estimated time to complete the workflow"
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Input parameters required by the workflow",
+      "items": {
+        "type": "object",
+        "required": ["name", "type"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$",
+            "description": "Input parameter name in UPPER_SNAKE_CASE"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "boolean", "enum", "array", "object"],
+            "description": "Data type of the input"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the input parameter"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this input is required"
+          },
+          "default": {
+            "description": "Default value if not provided"
+          },
+          "values": {
+            "type": "array",
+            "description": "Allowed values for enum type",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pattern": {
+            "type": "string",
+            "description": "Regex pattern for string validation"
+          }
+        }
+      }
+    },
+    "prerequisites": {
+      "type": "array",
+      "description": "Conditions that must be met before workflow execution",
+      "items": {
+        "type": "object",
+        "required": ["description"],
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "Description of the prerequisite"
+          },
+          "check": {
+            "type": "string",
+            "description": "Automated check expression or command"
+          },
+          "required": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether this prerequisite must be met"
+          }
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "description": "Sequential steps to execute in the workflow",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "action"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Unique identifier for the step"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable name for the step"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of what this step does"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "execute-workflow",
+              "shell-command",
+              "git-operation",
+              "azure-devops",
+              "conditional",
+              "while-loop",
+              "for-loop",
+              "parallel",
+              "wait",
+              "evaluate",
+              "set-variable",
+              "log"
+            ],
+            "description": "Type of action to perform"
+          },
+          "workflow": {
+            "type": "string",
+            "description": "Workflow ID to execute (for execute-workflow action)"
+          },
+          "command": {
+            "type": "string",
+            "description": "Shell command to execute (for shell-command action)"
+          },
+          "operation": {
+            "type": "string",
+            "description": "Specific operation for git or azure-devops actions"
+          },
+          "condition": {
+            "type": "string",
+            "description": "Condition expression for conditional or loop actions"
+          },
+          "steps": {
+            "type": "array",
+            "description": "Nested steps for conditional, loop, or parallel actions",
+            "$ref": "#/properties/steps"
+          },
+          "inputs": {
+            "type": "object",
+            "description": "Input values to pass to the action",
+            "additionalProperties": true
+          },
+          "outputs": {
+            "type": "array",
+            "description": "Variables to capture from this step",
+            "items": {
+              "type": "string"
+            }
+          },
+          "onError": {
+            "type": "string",
+            "enum": ["fail", "continue", "retry", "fallback"],
+            "default": "fail",
+            "description": "Error handling strategy"
+          },
+          "retryCount": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "default": 3,
+            "description": "Number of retry attempts for retry strategy"
+          },
+          "timeout": {
+            "type": "string",
+            "pattern": "^\\d+[smh]$",
+            "description": "Timeout duration (e.g., 30s, 5m, 1h)"
+          }
+        }
+      }
+    },
+    "outputs": {
+      "type": "array",
+      "description": "Output values produced by the workflow",
+      "items": {
+        "type": "object",
+        "required": ["name", "value"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$",
+            "description": "Output variable name in UPPER_SNAKE_CASE"
+          },
+          "value": {
+            "type": "string",
+            "description": "Expression to compute the output value"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the output"
+          }
+        }
+      }
+    },
+    "successCriteria": {
+      "type": "array",
+      "description": "Conditions that must be met for workflow success",
+      "items": {
+        "type": "string"
+      }
+    },
+    "errorHandling": {
+      "type": "object",
+      "description": "Global error handling configuration",
+      "properties": {
+        "strategy": {
+          "type": "string",
+          "enum": ["fail-fast", "continue-on-error", "rollback"],
+          "default": "fail-fast",
+          "description": "Overall error handling strategy"
+        },
+        "onFailure": {
+          "type": "array",
+          "description": "Steps to execute on workflow failure",
+          "items": {
+            "$ref": "#/properties/steps/items"
+          }
+        },
+        "notifications": {
+          "type": "array",
+          "description": "Notification configuration for errors",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["log", "email", "slack", "azure-devops"],
+                "description": "Notification type"
+              },
+              "target": {
+                "type": "string",
+                "description": "Target for the notification"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

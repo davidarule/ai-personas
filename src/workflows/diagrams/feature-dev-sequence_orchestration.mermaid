@@ -1,0 +1,70 @@
+sequenceDiagram
+    participant User
+    participant Main as Main Workflow<br/>(wf0-feature-development)
+    participant Branch as Branch Creation<br/>(wf3)
+    participant Commit as Code Commit<br/>(wf4)
+    participant PRCheck as PR Readiness<br/>(wf13)
+    participant PR as PR Creation<br/>(wf5)
+    participant Review as PR Response<br/>(wf7)
+    participant Merge as Merge<br/>(wf8)
+    participant Monitor as Post-Merge<br/>(wf9)
+    participant Rollback as Rollback<br/>(wf11)
+
+    User->>Main: Start Feature Development<br/>(FEATURE_ID, DESCRIPTION, PRIORITY)
+    
+    Note over Main: Initialize Feature
+    Main->>Branch: Execute Branch Creation<br/>(type: feature, id: FEATURE_ID)
+    Branch-->>Main: Return BRANCH_NAME, STATUS
+    
+    Note over Main: Development Cycle<br/>(Loop until feature_complete)
+    loop Development Iterations
+        Main->>Main: Implement Changes<br/>(Log: "Implementing feature changes...")
+        Main->>Commit: Execute Code Commit<br/>(branch: BRANCH_NAME, type: feat)
+        Commit-->>Main: Changes Committed
+        Main->>PRCheck: Check PR Readiness
+        PRCheck-->>Main: Return READY_FOR_PR
+        alt PR Ready
+            Main->>Main: Set feature_complete = true
+        else Not Ready
+            Main->>Main: Continue development
+        end
+    end
+    
+    Note over Main: Create Pull Request
+    Main->>PR: Create Pull Request<br/>(branch: BRANCH_NAME, work_item: FEATURE_ID)
+    PR-->>Main: Return PR_NUMBER, PR_URL
+    
+    Note over Main: Review Cycle<br/>(Loop until pr_approved)
+    loop Review Iterations
+        Main->>Main: Wait for Review (30m)
+        Main->>Main: Check Review Status
+        alt Feedback Received
+            Main->>Review: Handle Review Feedback<br/>(PR_NUMBER)
+            Review-->>Main: Feedback Addressed
+        end
+        alt PR Approved
+            Main->>Main: Set pr_approved = true
+        else Not Approved
+            Main->>Main: Continue review cycle
+        end
+    end
+    
+    Note over Main: Merge Feature
+    Main->>Merge: Execute Merge<br/>(PR_NUMBER, strategy: squash)
+    Merge-->>Main: Return MERGE_COMMIT, STATUS
+    
+    Note over Main: Post-Merge Validation
+    Main->>Monitor: Monitor Changes<br/>(commit: MERGE_COMMIT, duration: 24h)
+    Monitor-->>Main: Monitoring Complete
+    
+    alt Success
+        Main-->>User: Feature Complete<br/>(BRANCH_NAME, PR_NUMBER, MERGE_COMMIT)
+    else Failure Occurred
+        Note over Main: Error Handling
+        Main->>Main: Log Error<br/>("Workflow failed at ${current_step}")
+        alt Merge Was Completed
+            Main->>Rollback: Execute Rollback<br/>(commit: MERGE_COMMIT)
+            Rollback-->>Main: Rollback Complete
+        end
+        Main-->>User: Workflow Failed<br/>(Error Details)
+    end

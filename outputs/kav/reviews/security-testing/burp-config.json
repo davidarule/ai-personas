@@ -1,0 +1,211 @@
+{
+  "project_options": {
+    "connections": {
+      "hostname_resolution": [],
+      "out_of_scope_protocols": [
+        "EXAMPLE"
+      ],
+      "platform_authentication": {
+        "credentials": [],
+        "do_platform_authentication": true,
+        "prompt_on_authentication_failure": false,
+        "use_user_options": true
+      },
+      "socks_proxy": {
+        "dns_over_socks": false,
+        "host": "",
+        "password": "",
+        "port": 0,
+        "use_proxy": false,
+        "username": ""
+      },
+      "timeouts": {
+        "domain_name_resolution_timeout": 300000,
+        "failed_domain_name_resolution_timeout": 60000,
+        "normal_timeout": 120000,
+        "open_ended_response_timeout": 10000
+      }
+    },
+    "http": {
+      "redirections": {
+        "understand_3xx_status_code": true,
+        "understand_any_status_code_with_location_header": false,
+        "understand_javascript_driven": false,
+        "understand_meta_refresh_tag": true,
+        "understand_refresh_header": true
+      },
+      "status_100_responses": {
+        "remove_100_continue_responses": false,
+        "understand_100_continue_responses": true
+      },
+      "streaming_responses": {
+        "scope_advanced_scope_control": true,
+        "store": true,
+        "strip_chunked_encoding_metadata": true,
+        "urls": []
+      }
+    },
+    "misc": {
+      "collaborator_server": {
+        "location": "",
+        "poll_over_unencrypted_http": false,
+        "polling_location": "",
+        "type": "oast"
+      },
+      "embedded_browser": {
+        "allow_saving_browser_settings": true,
+        "browser_data_directory": ""
+      },
+      "scheduled_tasks": {
+        "tasks": []
+      }
+    },
+    "sessions": {
+      "cookie_jar": {
+        "monitor_extender": false,
+        "monitor_intruder": false,
+        "monitor_proxy": true,
+        "monitor_repeater": false,
+        "monitor_scanner": true,
+        "monitor_sequencer": false
+      },
+      "macros": [],
+      "session_handling_rules": {
+        "rules": [
+          {
+            "actions": [
+              {
+                "enabled": true,
+                "match_cookies": "all_except",
+                "type": "use_cookies"
+              }
+            ],
+            "description": "Use cookies from Burp's cookie jar",
+            "enabled": true,
+            "exclude_from_scope": [],
+            "include_in_scope": [],
+            "named_params": [],
+            "restrict_scope_to_named_params": false,
+            "tools_scope": [
+              "Scanner",
+              "Intruder",
+              "Repeater",
+              "Sequencer"
+            ],
+            "url_scope": "all"
+          }
+        ]
+      }
+    }
+  },
+  "scanner": {
+    "audit_optimization": {
+      "consolidate_passive_issues": true,
+      "follow_redirections": true,
+      "maintain_session": true,
+      "scan_accuracy": "normal",
+      "scan_speed": "fast"
+    },
+    "error_handling": {
+      "consecutive_audit_check_failures_to_skip_insertion_point": 10,
+      "consecutive_insertion_point_failures_to_fail_audit_item": 2,
+      "number_of_follow_up_passes": 1,
+      "pause_task_failed_audit_item_count": 10,
+      "pause_task_failed_audit_item_percentage": 0
+    },
+    "insertion_point_types": {
+      "insert_body_params": true,
+      "insert_cookies": true,
+      "insert_entire_body": true,
+      "insert_http_headers": true,
+      "insert_param_attributes": true,
+      "insert_param_name": true,
+      "insert_path_filename": false,
+      "insert_path_folders": false,
+      "insert_referer_header": true,
+      "insert_url_params": true,
+      "insert_url_path_filename": true,
+      "insert_url_path_folders": false,
+      "insert_user_agent_header": true
+    },
+    "misc_options": {
+      "max_generated_issues_per_type": 5000,
+      "max_insertion_points_per_base_request": 30
+    }
+  },
+  "target": {
+    "filter": {
+      "by_annotation": {
+        "show_only_commented_items": false,
+        "show_only_highlighted_items": false
+      },
+      "by_file_extension": {
+        "hide_items": [
+          "js",
+          "gif",
+          "jpg",
+          "png",
+          "css",
+          "ico",
+          "woff",
+          "woff2",
+          "ttf"
+        ],
+        "hide_specific": false,
+        "show_items": [
+          "asp",
+          "aspx",
+          "jsp",
+          "php"
+        ],
+        "show_only_in_scope_items": false,
+        "show_only_parameterized_requests": false,
+        "show_only_requested_items": false,
+        "show_specific": false
+      },
+      "by_folders": {
+        "hide_empty_folders": false
+      },
+      "by_mime_type": {
+        "show_css": false,
+        "show_flash": true,
+        "show_html": true,
+        "show_images": false,
+        "show_other_binary": false,
+        "show_other_text": true,
+        "show_script": true,
+        "show_xml": true
+      },
+      "by_request_type": {
+        "hide_not_found_items": false,
+        "show_only_in_scope_items": true
+      },
+      "by_search": {
+        "case_sensitive": false,
+        "negative_search": false,
+        "regex": false,
+        "term": ""
+      },
+      "by_status_code": {
+        "show_1xx": true,
+        "show_2xx": true,
+        "show_3xx": true,
+        "show_4xx": true,
+        "show_5xx": true
+      }
+    },
+    "scope": {
+      "advanced_mode": true,
+      "exclude": [],
+      "include": [
+        {
+          "enabled": true,
+          "file": "^/.*",
+          "host": "trivia.example.com",
+          "port": "^443$",
+          "protocol": "https"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Diagram Buttons</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #10b981;
+            color: #fff;
+        }
+        .error {
+            background: #ef4444;
+            color: #fff;
+        }
+        button {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Workflow Diagram Buttons Test</h1>
+    
+    <div class="test-section">
+        <h2>API Endpoint Tests</h2>
+        <button onclick="testEndpoint('orchestration')">Test Orchestration</button>
+        <button onclick="testEndpoint('interaction')">Test Interaction</button>
+        <button onclick="testEndpoint('raci')">Test RACI</button>
+        <div id="api-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>UI Feature Test</h2>
+        <p>The Feature Development workflow should now have three blue buttons:</p>
+        <ul>
+            <li>Orchestration - Shows workflow-to-workflow interactions</li>
+            <li>Interaction - Shows persona and system interactions</li>
+            <li>RACI - Shows responsibility assignment matrix</li>
+        </ul>
+        <p>Navigate to: <a href="http://localhost:3000/index.html" target="_blank" style="color: #3b82f6;">Dashboard</a></p>
+        <p>Go to the Workflows tab and look for the Feature Development workflow.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Database Check</h2>
+        <button onclick="checkDatabase()">Check Database Contents</button>
+        <div id="db-results"></div>
+    </div>
+    
+    <script>
+        async function testEndpoint(type) {
+            const resultsDiv = document.getElementById('api-results');
+            try {
+                const response = await fetch(`http://localhost:8080/api/workflows/wf0-feature-development/diagrams/${type}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML += `
+                        <div class="status success">
+                            ✓ ${type} endpoint working - ${data.metadata?.title || 'No title'}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML += `
+                        <div class="status error">
+                            ✗ ${type} endpoint failed: ${data.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML += `
+                    <div class="status error">
+                        ✗ ${type} endpoint error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function checkDatabase() {
+            const resultsDiv = document.getElementById('db-results');
+            try {
+                const response = await fetch('http://localhost:8080/api/workflows/wf0-feature-development/diagrams');
+                const data = await response.json();
+                
+                if (response.ok && data.diagrams) {
+                    resultsDiv.innerHTML = `
+                        <div class="status success">
+                            ✓ Found ${data.diagrams.length} diagrams in database:
+                            <ul>
+                                ${data.diagrams.map(d => `<li>${d.diagram_type} (${d.format})</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="status error">
+                            ✗ Failed to fetch diagrams: ${data.error || 'Unknown error'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="status error">
+                        ✗ Database check error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
