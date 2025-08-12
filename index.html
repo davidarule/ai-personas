@@ -4661,9 +4661,24 @@ steps:
                                 Manage AI Persona instances. Create multiple instances of each persona type with customized configurations.
                             </p>
                             
-                            <button id="createPersonaBtn" class="btn-primary" onclick="showCreatePersonaModal()">
-                                <span style="font-size: 16px;">&plus;</span> Persona Type
-                            </button>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                                <button id="createPersonaBtn" class="btn-primary" onclick="showCreatePersonaModal()">
+                                    <span style="font-size: 16px;">&plus;</span> Persona Type
+                                </button>
+                                <div style="border-left: 1px solid #444; height: 20px; margin: 0 5px;"></div>
+                                <button class="btn-secondary" onclick="exportAllPersonaPrompts()">
+                                    <span style="margin-right: 5px;">&#128228;</span>Export All Prompts
+                                </button>
+                                <button class="btn-secondary" onclick="importPersonaPrompts()">
+                                    <span style="margin-right: 5px;">&#128229;</span>Import Prompts
+                                </button>
+                                <button class="btn-secondary" onclick="exportAllWorkflows()">
+                                    <span style="margin-right: 5px;">&#128228;</span>Export All Workflows
+                                </button>
+                                <button class="btn-secondary" onclick="importWorkflows()">
+                                    <span style="margin-right: 5px;">&#128229;</span>Import Workflows
+                                </button>
+                            </div>
                         </div>
                         
                         <!-- Persona Types Overview -->
@@ -6192,6 +6207,167 @@ ${escapeHtml(version.prompt)}
             } catch (error) {
                 showNotification('Error importing system prompt: ' + error.message, 'error');
             }
+        }
+
+        // Export/Import functions for Persona Prompts and Workflows
+        async function exportAllPersonaPrompts() {
+            try {
+                const response = await fetch('http://localhost:8080/api/export/all-prompts');
+                if (!response.ok) throw new Error('Failed to export prompts');
+                
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'Export failed');
+                }
+                
+                // Create download
+                const dataStr = JSON.stringify(result.data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `persona-prompts-export-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showNotification(`Exported ${result.data.total_prompts} persona prompts successfully`, 'success');
+            } catch (error) {
+                console.error('Error exporting prompts:', error);
+                showNotification('Failed to export prompts: ' + error.message, 'error');
+            }
+        }
+
+        async function importPersonaPrompts() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const content = await file.text();
+                    const data = JSON.parse(content);
+                    
+                    // Validate format
+                    if (!data.prompts && !data.persona_type) {
+                        throw new Error('Invalid file format - not a persona prompts export');
+                    }
+                    
+                    // Import via API
+                    const response = await fetch('http://localhost:8080/api/import/prompts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to import prompts');
+                    
+                    const result = await response.json();
+                    if (result.status !== 'success') {
+                        throw new Error(result.message || 'Import failed');
+                    }
+                    
+                    if (result.results) {
+                        showNotification(`Imported ${result.results.imported} prompts successfully, ${result.results.failed} failed`, 'success');
+                    } else {
+                        showNotification('Prompts imported successfully', 'success');
+                    }
+                    
+                    // Reload persona types to show new prompts
+                    loadPersonaTypes();
+                    
+                } catch (error) {
+                    console.error('Error importing prompts:', error);
+                    showNotification('Failed to import prompts: ' + error.message, 'error');
+                }
+            };
+            
+            input.click();
+        }
+
+        async function exportAllWorkflows() {
+            try {
+                const response = await fetch('http://localhost:8080/api/export/all-workflows?include_history=true');
+                if (!response.ok) throw new Error('Failed to export workflows');
+                
+                const result = await response.json();
+                if (result.status !== 'success') {
+                    throw new Error(result.message || 'Export failed');
+                }
+                
+                // Create download
+                const dataStr = JSON.stringify(result.data, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `workflows-export-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showNotification(`Exported ${result.data.total_workflows} workflows successfully`, 'success');
+            } catch (error) {
+                console.error('Error exporting workflows:', error);
+                showNotification('Failed to export workflows: ' + error.message, 'error');
+            }
+        }
+
+        async function importWorkflows() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                try {
+                    const content = await file.text();
+                    const data = JSON.parse(content);
+                    
+                    // Validate format
+                    if (!data.workflows && !data.workflow_id) {
+                        throw new Error('Invalid file format - not a workflows export');
+                    }
+                    
+                    // Import via API
+                    const response = await fetch('http://localhost:8080/api/import/workflows', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) throw new Error('Failed to import workflows');
+                    
+                    const result = await response.json();
+                    if (result.status !== 'success') {
+                        throw new Error(result.message || 'Import failed');
+                    }
+                    
+                    if (result.results) {
+                        showNotification(`Imported ${result.results.imported} workflows successfully, ${result.results.failed} failed`, 'success');
+                    } else {
+                        showNotification('Workflows imported successfully', 'success');
+                    }
+                    
+                    // Reload workflows if on that tab
+                    if (document.getElementById('workflows-tab')?.classList.contains('active')) {
+                        loadWorkflows();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error importing workflows:', error);
+                    showNotification('Failed to import workflows: ' + error.message, 'error');
+                }
+            };
+            
+            input.click();
         }
         
         async function testConnection(isAutoLoad = false) {

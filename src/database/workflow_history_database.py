@@ -201,6 +201,131 @@ class WorkflowHistoryDatabase:
             """)
             
             return [row['workflow_id'] for row in cursor.fetchall()]
+    
+    def export_workflow(self, workflow_id: str, include_history: bool = True, 
+                       version: int = None) -> Dict[str, Any]:
+        """Export a workflow with optional history
+        
+        Args:
+            workflow_id: Workflow to export
+            include_history: Whether to include version history
+            version: Specific version to export (None for latest)
+            
+        Returns:
+            Export data dictionary
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            
+            # Get specific version or latest
+            if version is not None:
+                cursor.execute("""
+                    SELECT * FROM workflow_history
+                    WHERE workflow_id = ? AND version = ?
+                """, (workflow_id, version))
+            else:
+                cursor.execute("""
+                    SELECT * FROM workflow_history
+                    WHERE workflow_id = ?
+                    ORDER BY version DESC
+                    LIMIT 1
+                """, (workflow_id,))
+            
+            current = cursor.fetchone()
+            if not current:
+                return None
+            
+            export_data = {
+                'workflow_id': current['workflow_id'],
+                'current_definition': current['definition'],
+                'current_version': current['version'],
+                'last_updated': current['created_at'],
+                'updated_by': current['created_by']
+            }
+            
+            if include_history:
+                history = self.get_workflow_history(workflow_id)
+                export_data['history'] = history
+            
+            return export_data
+    
+    def import_workflow(self, import_data: Dict[str, Any], 
+                       created_by: str = 'import') -> Dict[str, Any]:
+        """Import a workflow from export data
+        
+        Args:
+            import_data: Dictionary with workflow data
+            created_by: User performing the import
+            
+        Returns:
+            Import result
+        """
+        if 'workflow_id' not in import_data or 'current_definition' not in import_data:
+            raise ValueError("Invalid import data: missing required fields")
+        
+        return self.save_workflow(
+            import_data['workflow_id'],
+            import_data['current_definition'],
+            created_by,
+            'Imported from external source'
+        )
+    
+    def export_all_workflows(self, include_history: bool = True) -> Dict[str, Any]:
+        """Export all workflows with their history
+        
+        Args:
+            include_history: Whether to include version history
+            
+        Returns:
+            Dictionary with all workflow exports
+        """
+        workflows = self.get_all_workflows()
+        exports = {}
+        
+        for workflow_id in workflows:
+            export_data = self.export_workflow(workflow_id, include_history)
+            if export_data:
+                exports[workflow_id] = export_data
+        
+        return {
+            'workflows': exports,
+            'export_date': datetime.now().isoformat(),
+            'total_workflows': len(exports)
+        }
+    
+    def import_all_workflows(self, import_data: Dict[str, Any], 
+                            created_by: str = 'import') -> Dict[str, Any]:
+        """Import multiple workflows from export data
+        
+        Args:
+            import_data: Dictionary with workflow exports
+            created_by: User performing the import
+            
+        Returns:
+            Import results
+        """
+        if 'workflows' not in import_data:
+            raise ValueError("Invalid import data: missing 'workflows' field")
+        
+        results = {
+            'imported': 0,
+            'failed': 0,
+            'errors': []
+        }
+        
+        for workflow_id, workflow_data in import_data['workflows'].items():
+            try:
+                self.import_workflow(workflow_data, created_by)
+                results['imported'] += 1
+            except Exception as e:
+                results['failed'] += 1
+                results['errors'].append({
+                    'workflow_id': workflow_id,
+                    'error': str(e)
+                })
+                logger.error(f"Failed to import workflow {workflow_id}: {e}")
+        
+        return results
 
 
 # Singleton instance

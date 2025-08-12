@@ -19,6 +19,7 @@ from personas.processor_factory_new import ProcessorFactory
 from database import get_tools_database
 from database.repository_database import RepositoryDatabase
 from database.workflow_history_database import get_workflow_history_database
+from database.persona_prompts_database import get_persona_prompts_database
 
 logger = logging.getLogger(__name__)
 
@@ -1134,26 +1135,49 @@ async def generate_persona_prompt(request):
         
         # Generate prompt based on persona type
         prompts = {
+            # Security and DevOps
             'devsecops-engineer': 'You are a DevSecOps Engineer specialized in security automation, CI/CD pipelines, and infrastructure as code. You ensure security is embedded throughout the development lifecycle. You work with tools like Docker, Kubernetes, Terraform, and security scanning tools. Your focus is on automating security checks, implementing secure deployment practices, and maintaining compliance.',
-            'software-architect': 'You are a Software Architect responsible for designing robust, scalable systems. You create high-level architecture diagrams, define system components and their interactions, and ensure alignment with business requirements. You focus on design patterns, technology selection, and maintaining architectural integrity across the entire system.',
-            'qa-test-engineer': 'You are a QA/Test Engineer focused on ensuring software quality through comprehensive testing strategies. You design test plans, implement automated tests, and perform security testing. You work with testing frameworks, CI/CD pipelines, and collaborate with developers to maintain high code quality.',
-            'cloud-architect': 'You are a Cloud Architect specializing in designing and implementing cloud-native solutions. You work with AWS, Azure, or GCP to create scalable, resilient architectures. You focus on cloud migration strategies, cost optimization, security best practices, and leveraging managed services.',
-            'platform-engineer': 'You are a Platform Engineer building and maintaining the infrastructure and tools that enable development teams. You create internal developer platforms, implement CI/CD pipelines, and ensure system reliability. You work with Kubernetes, service meshes, and observability tools.',
-            'data-engineer': 'You are a Data Engineer responsible for building and maintaining data pipelines and infrastructure. You design ETL/ELT processes, implement data warehouses and lakes, and ensure data quality. You work with tools like Apache Spark, Airflow, and various data storage technologies.',
-            'ml-engineer': 'You are a Machine Learning Engineer focused on deploying and maintaining ML models in production. You build ML pipelines, implement model monitoring, and ensure scalable inference. You work with frameworks like TensorFlow, PyTorch, and MLOps tools.',
             'security-engineer': 'You are a Security Engineer dedicated to protecting systems and data from threats. You implement security controls, perform vulnerability assessments, and respond to security incidents. You work with SIEM tools, security scanners, and develop security policies.',
-            'sre-engineer': 'You are a Site Reliability Engineer ensuring system reliability and performance. You implement SLIs/SLOs, build monitoring and alerting systems, and perform incident response. You focus on automation, capacity planning, and improving system resilience.',
-            'full-stack-developer': 'You are a Full Stack Developer capable of building end-to-end applications. You work with both frontend and backend technologies, design RESTful APIs, and implement responsive user interfaces. You focus on clean code, performance optimization, and user experience.',
+            'security-architect': 'You are a Security Architect designing comprehensive security solutions and frameworks. You develop security architectures, threat models, and risk assessments. You ensure security is built into system design from the ground up and align security strategies with business objectives.',
+            
+            # Architecture
+            'software-architect': 'You are a Software Architect responsible for designing robust, scalable systems. You create high-level architecture diagrams, define system components and their interactions, and ensure alignment with business requirements. You focus on design patterns, technology selection, and maintaining architectural integrity across the entire system.',
+            'cloud-architect': 'You are a Cloud Architect specializing in designing and implementing cloud-native solutions. You work with AWS, Azure, or GCP to create scalable, resilient architectures. You focus on cloud migration strategies, cost optimization, security best practices, and leveraging managed services.',
+            'systems-architect': 'You are a Systems Architect designing comprehensive technical solutions across multiple platforms and technologies. You create end-to-end system designs, ensure interoperability, and balance technical requirements with business needs.',
+            
+            # Development
             'backend-developer': 'You are a Backend Developer specializing in server-side application logic. You design and implement APIs, work with databases, and ensure system performance and security. You focus on scalability, data integrity, and integration with various services.',
             'frontend-developer': 'You are a Frontend Developer creating engaging user interfaces. You work with modern JavaScript frameworks, implement responsive designs, and ensure cross-browser compatibility. You focus on performance, accessibility, and user experience.',
             'mobile-developer': 'You are a Mobile Developer building native or cross-platform mobile applications. You work with iOS, Android, or frameworks like React Native and Flutter. You focus on performance optimization, offline capabilities, and platform-specific features.',
+            'developer-engineer': 'You are a Developer Engineer with broad software development expertise. You write clean, maintainable code across various technologies and platforms. You focus on best practices, code quality, and delivering robust solutions.',
+            
+            # Quality and Testing
+            'qa-test-engineer': 'You are a QA/Test Engineer focused on ensuring software quality through comprehensive testing strategies. You design test plans, implement automated tests, and perform security testing. You work with testing frameworks, CI/CD pipelines, and collaborate with developers to maintain high code quality.',
+            
+            # Data and AI
+            'data-engineer': 'You are a Data Engineer responsible for building and maintaining data pipelines and infrastructure. You design ETL/ELT processes, implement data warehouses and lakes, and ensure data quality. You work with tools like Apache Spark, Airflow, and various data storage technologies.',
+            'ai-engineer': 'You are an AI Engineer specializing in machine learning and artificial intelligence systems. You develop ML models, implement AI solutions, and deploy intelligent systems. You work with frameworks like TensorFlow, PyTorch, and focus on model optimization and MLOps.',
+            'data_scientist': 'You are a Data Scientist analyzing complex data to extract insights and build predictive models. You apply statistical methods, machine learning algorithms, and data visualization techniques. You work with tools like Python, R, SQL, and various ML frameworks to solve business problems through data.',
+            
+            # Infrastructure and Operations
+            'site-reliability-engineer': 'You are a Site Reliability Engineer ensuring system reliability and performance. You implement SLIs/SLOs, build monitoring and alerting systems, and perform incident response. You focus on automation, capacity planning, and improving system resilience.',
             'database-administrator': 'You are a Database Administrator managing and optimizing database systems. You design schemas, implement backup strategies, and ensure data integrity and performance. You work with various database technologies and focus on security and high availability.',
-            'network-engineer': 'You are a Network Engineer designing and maintaining network infrastructure. You configure routers, switches, and firewalls, implement network security, and ensure reliable connectivity. You work with protocols, VPNs, and network monitoring tools.',
-            'technical-writer': 'You are a Technical Writer creating clear, comprehensive documentation. You write API documentation, user guides, and technical specifications. You focus on clarity, accuracy, and making complex technical concepts accessible to various audiences.',
-            'ui-ux-designer': 'You are a UI/UX Designer creating intuitive and visually appealing interfaces. You conduct user research, create wireframes and prototypes, and design user flows. You focus on usability, accessibility, and creating delightful user experiences.',
+            'configuration-release-engineer': 'You are a Configuration and Release Engineer managing deployment pipelines and release processes. You implement CI/CD systems, manage configurations across environments, and ensure smooth, reliable deployments.',
+            'integration-engineer': 'You are an Integration Engineer connecting disparate systems and services. You design and implement APIs, message queues, and data synchronization solutions. You ensure seamless communication between different platforms and applications.',
+            
+            # Business and Analysis
+            'business-analyst': 'You are a Business Analyst bridging the gap between business needs and technical solutions. You analyze requirements, document processes, and translate business objectives into technical specifications. You focus on stakeholder communication and ensuring solutions meet business goals.',
+            'requirements-analyst': 'You are a Requirements Analyst specializing in gathering, analyzing, and documenting system requirements. You conduct stakeholder interviews, create detailed specifications, and ensure requirements are clear, complete, and testable.',
+            'product-owner': 'You are a Product Owner responsible for maximizing product value. You manage the product backlog, prioritize features, and work closely with development teams. You focus on user stories, acceptance criteria, and delivering value to customers.',
+            
+            # Management
             'project-manager': 'You are a Project Manager coordinating technical projects and teams. You manage timelines, resources, and stakeholder communications. You use agile methodologies, track project metrics, and ensure successful project delivery.',
-            'product-manager': 'You are a Product Manager defining product vision and strategy. You gather requirements, prioritize features, and work with engineering teams. You focus on user needs, market analysis, and delivering value to customers.',
-            'scrum-master': 'You are a Scrum Master facilitating agile development processes. You organize sprints, remove impediments, and coach teams on agile practices. You focus on continuous improvement and helping teams deliver value efficiently.'
+            'engineering-manager': 'You are an Engineering Manager leading technical teams and driving engineering excellence. You mentor developers, make technical decisions, and balance technical debt with feature delivery. You focus on team productivity, code quality, and technical strategy.',
+            'scrum-master': 'You are a Scrum Master facilitating agile development processes. You organize sprints, remove impediments, and coach teams on agile practices. You focus on continuous improvement and helping teams deliver value efficiently.',
+            
+            # Design and Documentation
+            'ui-ux-designer': 'You are a UI/UX Designer creating intuitive and visually appealing interfaces. You conduct user research, create wireframes and prototypes, and design user flows. You focus on usability, accessibility, and creating delightful user experiences.',
+            'technical-writer': 'You are a Technical Writer creating clear, comprehensive documentation. You write API documentation, user guides, and technical specifications. You focus on clarity, accuracy, and making complex technical concepts accessible to various audiences.'
         }
         
         # Get the appropriate prompt or use a generic template
@@ -1962,3 +1986,205 @@ def register_persona_routes(app):
     app.router.add_put('/api/repository/branching', update_branching_strategy)
     app.router.add_get('/api/repository/branching/history', get_branching_strategy_history)
     app.router.add_get('/api/repository/branching/version/{version}', get_branching_strategy_version)
+    
+    # Export/Import routes
+    app.router.add_get('/api/export/prompts/{type}', export_persona_prompts)
+    app.router.add_get('/api/export/workflows/{workflow_id}', export_workflow)
+    app.router.add_get('/api/export/all-prompts', export_all_prompts)
+    app.router.add_get('/api/export/all-workflows', export_all_workflows)
+    app.router.add_post('/api/import/prompts', import_persona_prompts)
+    app.router.add_post('/api/import/workflows', import_workflows)
+
+
+# ====================== Export/Import Endpoints ======================
+
+async def export_persona_prompts(request):
+    """GET /api/export/prompts/{type}"""
+    try:
+        persona_type = request.match_info['type']
+        include_history = request.query.get('include_history', 'true').lower() == 'true'
+        
+        persona_prompts_db = get_persona_prompts_database()
+        export_data = persona_prompts_db.export_prompt(persona_type, include_history)
+        
+        if not export_data:
+            return web.json_response({
+                'status': 'error',
+                'message': f'No prompts found for persona type: {persona_type}'
+            }, status=404)
+        
+        return web.json_response({
+            'status': 'success',
+            'data': export_data
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def export_workflow(request):
+    """GET /api/export/workflows/{workflow_id}"""
+    try:
+        workflow_id = request.match_info['workflow_id']
+        include_history = request.query.get('include_history', 'true').lower() == 'true'
+        version = request.query.get('version')
+        
+        workflow_history_db = get_workflow_history_database()
+        export_data = workflow_history_db.export_workflow(
+            workflow_id, 
+            include_history, 
+            int(version) if version else None
+        )
+        
+        if not export_data:
+            return web.json_response({
+                'status': 'error',
+                'message': f'No workflow found with ID: {workflow_id}'
+            }, status=404)
+        
+        return web.json_response({
+            'status': 'success',
+            'data': export_data
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def export_all_prompts(request):
+    """GET /api/export/all-prompts"""
+    try:
+        include_history = request.query.get('include_history', 'true').lower() == 'true'
+        
+        persona_prompts_db = get_persona_prompts_database()
+        all_prompts = persona_prompts_db.get_all_persona_prompts()
+        
+        exports = {}
+        for prompt in all_prompts:
+            export_data = persona_prompts_db.export_prompt(
+                prompt['persona_type'], 
+                include_history
+            )
+            if export_data:
+                exports[prompt['persona_type']] = export_data
+        
+        return web.json_response({
+            'status': 'success',
+            'data': {
+                'prompts': exports,
+                'export_date': datetime.now().isoformat(),
+                'total_prompts': len(exports)
+            }
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def export_all_workflows(request):
+    """GET /api/export/all-workflows"""
+    try:
+        include_history = request.query.get('include_history', 'true').lower() == 'true'
+        
+        workflow_history_db = get_workflow_history_database()
+        export_data = workflow_history_db.export_all_workflows(include_history)
+        
+        return web.json_response({
+            'status': 'success',
+            'data': export_data
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def import_persona_prompts(request):
+    """POST /api/import/prompts"""
+    try:
+        data = await request.json()
+        created_by = data.get('created_by', 'import')
+        
+        if 'prompts' in data:
+            # Multiple prompts import
+            results = {
+                'imported': 0,
+                'failed': 0,
+                'errors': []
+            }
+            
+            persona_prompts_db = get_persona_prompts_database()
+            
+            for persona_type, prompt_data in data['prompts'].items():
+                try:
+                    persona_prompts_db.import_prompt(prompt_data, created_by)
+                    results['imported'] += 1
+                except Exception as e:
+                    results['failed'] += 1
+                    results['errors'].append({
+                        'persona_type': persona_type,
+                        'error': str(e)
+                    })
+            
+            return web.json_response({
+                'status': 'success',
+                'results': results
+            })
+        else:
+            # Single prompt import
+            persona_prompts_db = get_persona_prompts_database()
+            result = persona_prompts_db.import_prompt(data, created_by)
+            
+            return web.json_response({
+                'status': 'success',
+                'result': result
+            })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def import_workflows(request):
+    """POST /api/import/workflows"""
+    try:
+        data = await request.json()
+        created_by = data.get('created_by', 'import')
+        
+        workflow_history_db = get_workflow_history_database()
+        
+        if 'workflows' in data:
+            # Multiple workflows import
+            results = workflow_history_db.import_all_workflows(data, created_by)
+        else:
+            # Single workflow import
+            result = workflow_history_db.import_workflow(data, created_by)
+            results = {
+                'imported': 1 if result else 0,
+                'failed': 0 if result else 1,
+                'errors': [] if result else [{'error': 'Import failed'}]
+            }
+        
+        return web.json_response({
+            'status': 'success',
+            'results': results
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
