@@ -1452,6 +1452,115 @@ async def test_gemini_connection(request):
         }, status=500)
 
 
+# Persona Workflow Endpoints
+
+async def update_persona_workflow(request):
+    """POST /api/personas/types/{type}/workflow"""
+    try:
+        persona_type = request.match_info['type']
+        data = await request.json()
+        
+        # Validate required fields
+        if 'workflow_yaml' not in data:
+            return web.json_response({
+                'status': 'error',
+                'message': 'workflow_yaml is required'
+            }, status=400)
+        
+        # Update persona type workflow
+        success = persona_manager.update_persona_type(
+            persona_type=persona_type,
+            workflow_yaml=data['workflow_yaml'],
+            workflow_version=data.get('workflow_version', '1.0'),
+            workflow_last_updated=datetime.now().isoformat()
+        )
+        
+        if not success:
+            return web.json_response({
+                'status': 'error',
+                'message': f'Persona type not found: {persona_type}'
+            }, status=404)
+        
+        # Save workflow history (mock for now)
+        # In a real implementation, this would save to a database
+        return web.json_response({
+            'status': 'success',
+            'message': f'Workflow updated for {persona_type}',
+            'version': data.get('workflow_version', '1.0')
+        })
+            
+    except Exception as e:
+        logger.error(f"Error updating workflow: {str(e)}")
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def get_persona_workflow_history(request):
+    """GET /api/personas/types/{type}/workflow/history"""
+    try:
+        persona_type = request.match_info['type']
+        
+        # Mock history for now
+        # In a real implementation, this would query a database
+        history = []
+        
+        return web.json_response({
+            'status': 'success',
+            'history': history
+        })
+        
+    except Exception as e:
+        logger.error(f"Error getting workflow history: {str(e)}")
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def get_persona_workflow_version(request):
+    """GET /api/personas/types/{type}/workflow/history/{version_id}"""
+    try:
+        persona_type = request.match_info['type']
+        version_id = request.match_info['version_id']
+        
+        # Mock implementation for now
+        # In a real implementation, this would query a database
+        mock_versions = {
+            '1': {
+                'id': 1,
+                'version': '1.2',
+                'workflow_yaml': f'name: {persona_type}_workflow\nversion: 1.2\nsteps:\n  - initialize\n  - process\n  - complete',
+                'created_at': datetime.now().isoformat(),
+                'created_by': 'admin'
+            },
+            '2': {
+                'id': 2,
+                'version': '1.1',
+                'workflow_yaml': f'name: {persona_type}_workflow\nversion: 1.1\nsteps:\n  - start\n  - execute\n  - end',
+                'created_at': datetime.now().isoformat(),
+                'created_by': 'system'
+            }
+        }
+        
+        version_data = mock_versions.get(str(version_id))
+        if not version_data:
+            return web.json_response({
+                'status': 'error',
+                'message': f'Version not found: {version_id}'
+            }, status=404)
+        
+        return web.json_response(version_data)
+        
+    except Exception as e:
+        logger.error(f"Error getting workflow version: {str(e)}")
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
 # Repository Management Endpoints
 
 async def get_repository_structure(request):
@@ -1669,6 +1778,12 @@ def register_persona_routes(app):
     app.router.add_put('/api/personas/types/{type}/prompt', update_persona_type_prompt)
     app.router.add_put('/api/personas/types/{type}/mcp-servers', update_persona_type_mcp_servers)
     app.router.add_post('/api/personas/types/{type}/generate-prompt', generate_persona_prompt)
+    
+    # Persona workflow routes
+    app.router.add_post('/api/personas/types/{type}/workflow', update_persona_workflow)
+    app.router.add_get('/api/personas/types/{type}/workflow/history', get_persona_workflow_history)
+    app.router.add_get('/api/personas/types/{type}/workflow/history/{version_id}', get_persona_workflow_version)
+    
     app.router.add_get('/api/personas/instances', get_persona_instances)
     app.router.add_get('/api/personas/instances/{instance_id}', get_persona_instance)
     app.router.add_post('/api/personas/instances', create_persona_instance)

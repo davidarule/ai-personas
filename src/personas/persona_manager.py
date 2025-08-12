@@ -366,6 +366,9 @@ class PersonaManager:
                         'external_version': getattr(config, 'external_version', '1'),
                         'prompt_change_notes': getattr(config, 'prompt_change_notes', ''),
                         'prompt_last_updated': getattr(config, 'prompt_last_updated', ''),
+                        'workflow_yaml': getattr(config, 'workflow_yaml', ''),
+                        'workflow_version': getattr(config, 'workflow_version', '1.0'),
+                        'workflow_last_updated': getattr(config, 'workflow_last_updated', ''),
                         'instance_count': len(self.get_instances_by_type(persona_type))
                     })
         except Exception as e:
@@ -572,6 +575,12 @@ class PersonaManager:
                 config.default_email_domain = kwargs['default_email_domain']
             if 'requires_custom_integration' in kwargs and kwargs['requires_custom_integration'] is not None:
                 config.requires_custom_integration = kwargs['requires_custom_integration']
+            if 'workflow_yaml' in kwargs and kwargs['workflow_yaml'] is not None:
+                config.workflow_yaml = kwargs['workflow_yaml']
+            if 'workflow_version' in kwargs and kwargs['workflow_version'] is not None:
+                config.workflow_version = kwargs['workflow_version']
+            if 'workflow_last_updated' in kwargs and kwargs['workflow_last_updated'] is not None:
+                config.workflow_last_updated = kwargs['workflow_last_updated']
             
             # Save to a persona types config file
             self.save_persona_types()

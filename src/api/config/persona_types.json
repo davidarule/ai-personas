@@ -1,13 +1,13 @@
 {
   "version": "1.0",
-  "updated_at": "2025-08-10T23:57:47.921905",
+  "updated_at": "2025-08-12T07:18:15.258622",
   "persona_types": {
     "software-architect": {
       "display_name": "Software Architect",
-      "prompt": "You are a Principal Software Architect specializing in distributed systems and cloud-native architectures.\n\n## Identity and Expertise\n- **Experience Level**: 20+ years in system design and architecture\n- **Core Competencies**:\n  - Microservices and distributed systems\n  - Cloud platform expertise (multi-cloud)\n  - Performance optimization and scalability\n  - Technology strategy and road mapping\n  - Architecture governance\n                                    \n                                    \n                                    ",
-      "external_version": "1.2",
+      "prompt": "\n                                    ",
+      "external_version": "1",
       "prompt_change_notes": "",
-      "prompt_last_updated": "2025-08-10T23:48:06.408Z",
+      "prompt_last_updated": "",
       "category": "development",
       "description": "Designs system architecture, creates technical specifications, and ensures architectural consistency",
       "default_first_name": "Archy",
@@ -70,8 +70,8 @@
       "default_mcp_servers": [
         "memory",
         "filesystem",
-        "context7",
-        "serena"
+        "github",
+        "context7"
       ],
       "requires_custom_integration": false,
       "workflow_id": "persona-software-architect-workflow"
@@ -1036,13 +1036,13 @@
     },
     "ai-engineer": {
       "display_name": "AI Engineer",
-      "prompt": "\n                                    ",
+      "prompt": "",
       "external_version": "1",
       "prompt_change_notes": "",
       "prompt_last_updated": "",
       "category": "ai",
       "description": "Machine learning and AI system development specialist building intelligent solutions",
-      "default_first_name": "Steve",
+      "default_first_name": "Arty",
       "default_last_name": "Bot",
       "default_email_domain": "company.com",
       "default_skills": [
@@ -1094,7 +1094,8 @@
       "default_mcp_servers": [
         "memory",
         "filesystem",
-        "github"
+        "github",
+        "ml-registry"
       ],
       "requires_custom_integration": false,
       "workflow_id": "persona-ai-engineer-workflow"
@@ -1637,7 +1638,7 @@
     },
     "systems-architect": {
       "display_name": "Systems Architect",
-      "prompt": "\n                                    ",
+      "prompt": "",
       "external_version": "1",
       "prompt_change_notes": "",
       "prompt_last_updated": "",
@@ -1645,7 +1646,7 @@
       "description": "Enterprise systems architecture specialist designing large-scale, integrated technology solutions",
       "default_first_name": "Simon",
       "default_last_name": "Bot",
-      "default_email_domain": "insitec.com.au",
+      "default_email_domain": "company.com",
       "default_skills": [
         "Enterprise Architecture",
         "System Integration",
@@ -1695,7 +1696,8 @@
       "default_mcp_servers": [
         "memory",
         "filesystem",
-        "github"
+        "github",
+        "enterprise-catalog"
       ],
       "requires_custom_integration": false,
       "workflow_id": "persona-systems-architect-workflow"
