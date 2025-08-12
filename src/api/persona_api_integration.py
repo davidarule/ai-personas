@@ -18,6 +18,7 @@ from personas.persona_manager import PersonaManager
 from personas.processor_factory_new import ProcessorFactory
 from database import get_tools_database
 from database.repository_database import RepositoryDatabase
+from database.workflow_history_database import get_workflow_history_database
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ persona_manager = PersonaManager()
 processor_factory = ProcessorFactory()
 tools_db = get_tools_database()
 repository_db = RepositoryDatabase()
+workflow_history_db = get_workflow_history_database()
 
 # Persona Management Endpoints
 
@@ -1481,8 +1483,24 @@ async def update_persona_workflow(request):
                 'message': f'Persona type not found: {persona_type}'
             }, status=404)
         
-        # Save workflow history (mock for now)
-        # In a real implementation, this would save to a database
+        # Save workflow history
+        try:
+            workflow_id = f"persona_{persona_type}"
+            change_notes = data.get('change_notes', 'Updated via UI')
+            created_by = data.get('created_by', 'user')
+            
+            version_number = workflow_history_db.add_workflow_version(
+                workflow_id=workflow_id,
+                yaml_content=data['workflow_yaml'],
+                change_notes=change_notes,
+                created_by=created_by
+            )
+            
+            logger.info(f"Saved workflow history version {version_number} for {persona_type}")
+        except Exception as e:
+            logger.error(f"Failed to save workflow history: {str(e)}")
+            # Continue even if history save fails
+        
         return web.json_response({
             'status': 'success',
             'message': f'Workflow updated for {persona_type}',
@@ -1501,14 +1519,26 @@ async def get_persona_workflow_history(request):
     """GET /api/personas/types/{type}/workflow/history"""
     try:
         persona_type = request.match_info['type']
+        workflow_id = f"persona_{persona_type}"
         
-        # Mock history for now
-        # In a real implementation, this would query a database
-        history = []
+        # Get history from database
+        history = workflow_history_db.get_workflow_history(workflow_id, limit=50)
+        
+        # Format the history for the frontend
+        formatted_history = []
+        for record in history:
+            formatted_history.append({
+                'id': record['id'],
+                'version': record['version'],
+                'change_notes': record['change_notes'] or 'No notes provided',
+                'created_by': record['created_by'],
+                'created_at': record['created_at'],
+                'workflow_id': record['workflow_id']
+            })
         
         return web.json_response({
             'status': 'success',
-            'history': history
+            'history': formatted_history
         })
         
     except Exception as e:
@@ -1524,27 +1554,17 @@ async def get_persona_workflow_version(request):
     try:
         persona_type = request.match_info['type']
         version_id = request.match_info['version_id']
+        workflow_id = f"persona_{persona_type}"
         
-        # Mock implementation for now
-        # In a real implementation, this would query a database
-        mock_versions = {
-            '1': {
-                'id': 1,
-                'version': '1.2',
-                'workflow_yaml': f'name: {persona_type}_workflow\nversion: 1.2\nsteps:\n  - initialize\n  - process\n  - complete',
-                'created_at': datetime.now().isoformat(),
-                'created_by': 'admin'
-            },
-            '2': {
-                'id': 2,
-                'version': '1.1',
-                'workflow_yaml': f'name: {persona_type}_workflow\nversion: 1.1\nsteps:\n  - start\n  - execute\n  - end',
-                'created_at': datetime.now().isoformat(),
-                'created_by': 'system'
-            }
-        }
-        
-        version_data = mock_versions.get(str(version_id))
+        # Get specific version from database
+        try:
+            version_number = int(version_id)
+            version_data = workflow_history_db.get_workflow_version(workflow_id, version_number)
+        except ValueError:
+            return web.json_response({
+                'status': 'error',
+                'message': 'Invalid version ID - must be a number'
+            }, status=400)
         if not version_data:
             return web.json_response({
                 'status': 'error',

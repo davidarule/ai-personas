@@ -4798,7 +4798,7 @@ steps:
                 </div>
                 
                 <!-- Agents Tab -->
-                <div id="agents-tab" class="tab-content">
+                <div id="agents-tab" class="tab-content" style="max-height: calc(100vh - 200px); overflow-y: auto; overflow-x: hidden;">
                     <div style="background: #1a1a1a; padding: 20px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                             <div>
@@ -4825,7 +4825,7 @@ steps:
                         </div>
 
                         <!-- Provider Sections -->
-                        <div id="providersList" class="workflows-container" style="max-height: 640px; overflow-y: auto;">
+                        <div id="providersList" class="workflows-container" style="overflow-y: auto;">
                             
                             <!-- OpenAI Provider -->
                             <div class="workflow-section" id="provider-section-openai">
@@ -7941,73 +7941,31 @@ Provide comprehensive technical solutions and architectural guidance.`
                     history = data.history || [];
                 }
                 
-                // If no history from API, show mock data
-                if (history.length === 0) {
-                    history = [
-                        {
-                            id: 1,
-                            version: '1.2',
-                            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                            created_by: 'admin',
-                            change_notes: 'Added parallel processing steps and security gates',
-                            workflow_yaml: `name: ${personaType}_workflow_v1.2
-version: 1.2
-description: Enhanced workflow with security gates
-
-steps:
-  - name: initialize
-    type: setup
-    config:
-      security_check: true
-      
-  - name: process
-    type: parallel
-    steps:
-      - analyze_security
-      - review_code
-      
-  - name: complete
-    type: finalize`
-                        },
-                        {
-                            id: 2,
-                            version: '1.1',
-                            created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-                            created_by: 'system',
-                            change_notes: 'Initial workflow definition',
-                            workflow_yaml: `name: ${personaType}_workflow_v1.1
-version: 1.1
-description: Basic workflow structure
-
-steps:
-  - name: start
-    type: initialize
-  - name: process
-    type: execute
-  - name: end
-    type: complete`
-                        }
-                    ];
-                }
-                
                 const modal = createModal('Workflow Version History', `
                     <div style="max-height: 60vh; overflow-y: auto;">
-                        ${history.map(version => `
+                        ${history.length === 0 ? '<p style="color: #888; text-align: center; padding: 20px;">No workflow history available yet. Save a workflow to create history.</p>' :
+                        history.map(version => `
                             <div style="border: 1px solid #444; border-radius: 4px; padding: 15px; margin-bottom: 15px; background: #2a2a2a;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                     <h4 style="margin: 0; color: #4a9eff;">Version ${version.version}</h4>
-                                    <button class="btn-primary" onclick="restoreWorkflowVersion('${personaType}', ${version.id})" 
-                                            style="padding: 5px 15px; font-size: 12px;">
-                                        Restore This Version
-                                    </button>
+                                    <div>
+                                        <button class="btn-secondary" onclick="viewWorkflowVersion('${personaType}', ${version.version})" 
+                                                style="padding: 5px 15px; font-size: 12px;">
+                                            View
+                                        </button>
+                                        <button class="btn-primary" onclick="restoreWorkflowVersion('${personaType}', ${version.version})" 
+                                                style="padding: 5px 15px; font-size: 12px; margin-left: 5px;">
+                                            Restore
+                                        </button>
+                                    </div>
                                 </div>
                                 <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
                                     <div>Created: ${new Date(version.created_at).toLocaleString()}</div>
-                                    <div>By: ${version.created_by}</div>
+                                    <div>By: ${version.created_by || 'system'}</div>
                                     <div>Notes: ${version.change_notes || 'No notes'}</div>
                                 </div>
                                 <pre style="background: #1a1a1a; padding: 10px; border-radius: 4px; overflow-x: auto; 
-                                           font-size: 12px; max-height: 200px; overflow-y: auto;">${escapeHtml(version.workflow_yaml)}</pre>
+                                           font-size: 12px; max-height: 200px; overflow-y: auto;">${escapeHtml(version.yaml_content)}</pre>
                             </div>
                         `).join('')}
                     </div>
@@ -8094,9 +8052,42 @@ steps:
             input.click();
         }
 
-        async function restoreWorkflowVersion(personaType, versionId) {
+        async function viewWorkflowVersion(personaType, versionNumber) {
             try {
-                const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/workflow/history/${versionId}`);
+                const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/workflow/history/${versionNumber}`);
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch workflow version');
+                }
+                
+                const versionData = await response.json();
+                
+                // Create a modal to view the version
+                const modal = createModal(`Workflow Version ${versionData.version}`, `
+                    <div style="max-height: 60vh; overflow-y: auto;">
+                        <div style="margin-bottom: 15px;">
+                            <div style="color: #888; font-size: 14px;">
+                                <div>Created: ${new Date(versionData.created_at).toLocaleString()}</div>
+                                <div>By: ${versionData.created_by || 'system'}</div>
+                                <div>Notes: ${versionData.change_notes || 'No notes'}</div>
+                            </div>
+                        </div>
+                        <pre style="background: #1a1a1a; padding: 15px; border-radius: 4px; overflow-x: auto; 
+                                   font-size: 14px; color: #e0e0e0; font-family: 'Courier New', monospace;">${escapeHtml(versionData.yaml_content)}</pre>
+                    </div>
+                `);
+                
+                document.body.appendChild(modal);
+                
+            } catch (error) {
+                console.error('Error viewing workflow version:', error);
+                showNotification('Failed to load workflow version', 'error');
+            }
+        }
+
+        async function restoreWorkflowVersion(personaType, versionNumber) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/workflow/history/${versionNumber}`);
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch workflow version');
@@ -8105,12 +8096,21 @@ steps:
                 const versionData = await response.json();
                 
                 // Update the workflow textarea
-                document.getElementById('personaWorkflow').value = versionData.workflow_yaml;
+                const workflowTextarea = document.getElementById('personaWorkflow');
+                if (workflowTextarea) {
+                    workflowTextarea.value = versionData.yaml_content;
+                }
                 
                 // Update version display
-                const versionSpan = document.getElementById('personaWorkflowVersion');
+                const versionSpan = document.querySelector('.workflow-section-count');
                 if (versionSpan) {
-                    versionSpan.textContent = versionData.version;
+                    versionSpan.textContent = `Version ${versionData.version}`;
+                }
+                
+                // Add a note about the restoration
+                const changeNotesInput = document.getElementById('personaWorkflowChangeNotes');
+                if (changeNotesInput) {
+                    changeNotesInput.value = `Restored from version ${versionData.version}`;
                 }
                 
                 // Mark as changed
@@ -10900,6 +10900,9 @@ steps:
                 // User entered a new API key
                 hasApiKey = true;
                 actualApiKey = apiKey;
+            } else if (originalProviderStates[providerId] && originalProviderStates[providerId].hasApiKey) {
+                // No new API key entered, but there's already a saved one
+                hasApiKey = true;
             }
             
             // If no new API key entered, don't validate - let backend handle existing keys
@@ -10913,7 +10916,7 @@ steps:
             // Build provider data
             const providerData = {
                 enabled: true,
-                hasApiKey: hasApiKey || undefined, // Only set if we actually have an API key
+                hasApiKey: hasApiKey, // Always include this to preserve existing keys
                 models: selectedModels
             };
             
@@ -10976,6 +10979,13 @@ steps:
                     existingConfig[providerId] = sanitizedProvider;
                     localStorage.setItem('agentConfiguration', JSON.stringify(existingConfig));
                     
+                    // Update original provider states to reflect the new saved state
+                    if (originalProviderStates[providerId]) {
+                        originalProviderStates[providerId].hasApiKey = hasApiKey;
+                        originalProviderStates[providerId].models = [...selectedModels];
+                        originalProviderStates[providerId].enabled = true;
+                    }
+                    
                     // Reset change tracking
                     resetProviderChangeState(providerId);
                     
@@ -10992,9 +11002,30 @@ steps:
         
         // Test provider connection
         async function testProviderConnection(providerId) {
+            // Ensure provider tracking is initialized
+            if (!providerTrackingInitialized && providerTrackingPromise) {
+                try {
+                    await providerTrackingPromise;
+                } catch (error) {
+                    console.error('Failed to wait for provider initialization:', error);
+                }
+            }
+            
             // Check if provider is enabled
             const checkbox = document.getElementById(`provider-${providerId}`);
-            if (!checkbox || !checkbox.checked) {
+            if (!checkbox) {
+                showProviderMessage(providerId, 'Provider configuration not found', 'error');
+                return;
+            }
+            
+            // If checkbox is not checked but we have original state showing it should be enabled,
+            // it means the UI hasn't loaded the state yet
+            if (!checkbox.checked && originalProviderStates[providerId]?.enabled) {
+                // Apply the saved state
+                checkbox.checked = true;
+            }
+            
+            if (!checkbox.checked) {
                 showProviderMessage(providerId, 'Please enable the provider first', 'warning');
                 return;
             }
@@ -11043,10 +11074,22 @@ steps:
         // Track original provider states
         const originalProviderStates = {};
         
+        // Track if initialization is in progress
+        let providerTrackingInitialized = false;
+        let providerTrackingPromise = null;
+        
         // Initialize change tracking for providers
         function initializeProviderChangeTracking() {
-            // Get current states from backend
-            fetchAPI('/api/settings/agents', { method: 'GET' }).then(response => {
+            // If already initialized or in progress, return existing promise
+            if (providerTrackingInitialized) {
+                return Promise.resolve();
+            }
+            if (providerTrackingPromise) {
+                return providerTrackingPromise;
+            }
+            
+            // Create promise for initialization
+            providerTrackingPromise = fetchAPI('/api/settings/agents', { method: 'GET' }).then(response => {
                 if (response && response.settings && response.settings.providers) {
                     const providers = response.settings.providers;
                     
@@ -11092,51 +11135,60 @@ steps:
                         };
                     }
                 }
-            });
-            
-            // Add event listeners for OpenAI
-            const openaiApiKey = document.getElementById('openai-api-key');
-            if (openaiApiKey) {
-                openaiApiKey.addEventListener('input', () => {
-                    updateProviderChangeState('openai', 'apiKey', true);
-                });
-            }
-            
-            // Add event listeners for Anthropic
-            const anthropicApiKey = document.getElementById('anthropic-api-key');
-            if (anthropicApiKey) {
-                anthropicApiKey.addEventListener('input', () => {
-                    updateProviderChangeState('anthropic', 'apiKey', true);
-                });
-            }
-            
-            // Add event listeners for Gemini
-            const geminiApiKey = document.getElementById('gemini-api-key');
-            if (geminiApiKey) {
-                geminiApiKey.addEventListener('input', () => {
-                    updateProviderChangeState('gemini', 'apiKey', true);
-                });
-            }
-            
-            // Add listeners for provider enable/disable checkboxes
-            ['openai', 'anthropic', 'gemini'].forEach(providerId => {
-                const checkbox = document.getElementById(`provider-${providerId}`);
-                if (checkbox) {
-                    checkbox.addEventListener('change', () => {
-                        updateProviderChangeState(providerId, 'enabled', true);
+                
+                // Add event listeners for OpenAI
+                const openaiApiKey = document.getElementById('openai-api-key');
+                if (openaiApiKey) {
+                    openaiApiKey.addEventListener('input', () => {
+                        updateProviderChangeState('openai', 'apiKey', true);
                     });
                 }
                 
-                // Add listeners for model checkboxes
-                const modelContainer = document.getElementById(`${providerId}-models`);
-                if (modelContainer) {
-                    modelContainer.addEventListener('change', (e) => {
-                        if (e.target.type === 'checkbox') {
-                            updateProviderChangeState(providerId, 'models', true);
-                        }
+                // Add event listeners for Anthropic
+                const anthropicApiKey = document.getElementById('anthropic-api-key');
+                if (anthropicApiKey) {
+                    anthropicApiKey.addEventListener('input', () => {
+                        updateProviderChangeState('anthropic', 'apiKey', true);
                     });
                 }
-            });
+                
+                // Add event listeners for Gemini
+                const geminiApiKey = document.getElementById('gemini-api-key');
+                if (geminiApiKey) {
+                    geminiApiKey.addEventListener('input', () => {
+                        updateProviderChangeState('gemini', 'apiKey', true);
+                    });
+                }
+                
+                // Add listeners for provider enable/disable checkboxes
+                ['openai', 'anthropic', 'gemini'].forEach(providerId => {
+                    const checkbox = document.getElementById(`provider-${providerId}`);
+                    if (checkbox) {
+                        checkbox.addEventListener('change', () => {
+                            updateProviderChangeState(providerId, 'enabled', true);
+                        });
+                    }
+                    
+                    // Add listeners for model checkboxes
+                    const modelContainer = document.getElementById(`${providerId}-models`);
+                    if (modelContainer) {
+                        modelContainer.addEventListener('change', (e) => {
+                            if (e.target.type === 'checkbox') {
+                                updateProviderChangeState(providerId, 'models', true);
+                            }
+                        });
+                    }
+                });
+                
+                // Mark as initialized
+                providerTrackingInitialized = true;
+                providerTrackingPromise = null;
+            }).catch(error => {
+            console.error('Failed to initialize provider tracking:', error);
+            providerTrackingPromise = null;
+        });
+        
+        return providerTrackingPromise;
         }
         
         // Update provider change state and button appearances
@@ -11562,6 +11614,9 @@ steps:
                         }
                     }
                 }
+                
+                // Initialize provider change tracking after loading configuration
+                initializeProviderChangeTracking();
             } catch (error) {
                 console.error('Failed to load agent configuration from API, falling back to localStorage:', error);
                 // Fallback to localStorage for backward compatibility
@@ -11649,6 +11704,9 @@ steps:
             modelCheckboxes.forEach(cb => {
                 cb.addEventListener('change', trackAgentsSettingsChanges);
             });
+            
+            // Initialize provider change tracking after loading from localStorage
+            initializeProviderChangeTracking();
             }
         }
         
