@@ -10913,7 +10913,7 @@ steps:
             // Build provider data
             const providerData = {
                 enabled: true,
-                hasApiKey: true,
+                hasApiKey: hasApiKey || undefined, // Only set if we actually have an API key
                 models: selectedModels
             };
             
@@ -11018,7 +11018,7 @@ steps:
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        apiKey: apiKeyInput.value.trim() || undefined // Only send if new key
+                        apiKey: apiKeyInput.value.trim() // Send empty string if no new key, backend will use saved key
                     })
                 });
                 
@@ -11047,13 +11047,48 @@ steps:
         function initializeProviderChangeTracking() {
             // Get current states from backend
             fetchAPI('/api/settings/agents', { method: 'GET' }).then(response => {
-                if (response && response.providers) {
-                    // Store original states
-                    for (const providerId in response.providers) {
+                if (response && response.settings && response.settings.providers) {
+                    const providers = response.settings.providers;
+                    
+                    // Apply saved settings to UI
+                    for (const providerId in providers) {
+                        const config = providers[providerId];
+                        
+                        // Check the provider checkbox if enabled
+                        const checkbox = document.getElementById(`provider-${providerId}`);
+                        if (checkbox) {
+                            checkbox.checked = config.enabled || false;
+                        }
+                        
+                        // Set API key status if has key
+                        if (config.hasApiKey && config.apiKeyHint) {
+                            const apiKeyInput = document.getElementById(`${providerId}-api-key`);
+                            if (apiKeyInput) {
+                                apiKeyInput.placeholder = 'API key saved (enter new value to change)';
+                            }
+                            
+                            const statusSpan = document.getElementById(`${providerId}-api-key-status`);
+                            if (statusSpan) {
+                                statusSpan.innerHTML = `&#10003; Saved ${config.apiKeyHint}`;
+                                statusSpan.style.display = 'inline';
+                            }
+                        }
+                        
+                        // Check model checkboxes
+                        if (config.models && config.models.length > 0) {
+                            config.models.forEach(modelId => {
+                                const modelCheckbox = document.getElementById(`model-${providerId}-${modelId}`);
+                                if (modelCheckbox) {
+                                    modelCheckbox.checked = true;
+                                }
+                            });
+                        }
+                        
+                        // Store original states
                         originalProviderStates[providerId] = {
-                            enabled: response.providers[providerId].enabled || false,
-                            models: [...(response.providers[providerId].models || [])],
-                            hasApiKey: response.providers[providerId].hasApiKey || false
+                            enabled: config.enabled || false,
+                            models: [...(config.models || [])],
+                            hasApiKey: config.hasApiKey || false
                         };
                     }
                 }
