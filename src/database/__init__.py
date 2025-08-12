@@ -12,6 +12,7 @@ from .workflow_history_database import WorkflowHistoryDatabase, get_workflow_his
 from .repository_database import RepositoryDatabase
 from .agents_database import AgentsDatabase, get_agents_database
 from .settings_database import SettingsDatabase, get_settings_database
+from .persona_prompts_database import PersonaPromptsDatabase, get_persona_prompts_database
 
 # Create singleton instances
 _repository_db = None
@@ -30,4 +31,5 @@ __all__ = ['LogDatabase', 'get_log_database', 'ToolsDatabase', 'get_tools_databa
            'WorkflowHistoryDatabase', 'get_workflow_history_database',
            'RepositoryDatabase', 'get_repository_database',
            'AgentsDatabase', 'get_agents_database',
-           'SettingsDatabase', 'get_settings_database']
+           'SettingsDatabase', 'get_settings_database',
+           'PersonaPromptsDatabase', 'get_persona_prompts_database']

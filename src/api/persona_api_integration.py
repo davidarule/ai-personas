@@ -1026,6 +1026,8 @@ async def delete_persona_type(request):
 async def update_persona_type_prompt(request):
     """PUT /api/personas/types/{type}/prompt"""
     try:
+        from database.persona_prompts_database import get_persona_prompts_database
+        
         persona_type = request.match_info['type']
         data = await request.json()
         
@@ -1036,11 +1038,20 @@ async def update_persona_type_prompt(request):
                 'message': 'Prompt is required'
             }, status=400)
         
-        # Update only prompt-related fields
+        # Save to persona prompts database for version history
+        persona_prompts_db = get_persona_prompts_database()
+        prompt_result = persona_prompts_db.save_prompt(
+            persona_type=persona_type,
+            prompt=data['prompt'],
+            created_by='user',
+            change_notes=data.get('prompt_change_notes', '')
+        )
+        
+        # Update only prompt-related fields in persona manager
         success = persona_manager.update_persona_type(
             persona_type=persona_type,
             prompt=data['prompt'],
-            external_version=data.get('external_version'),
+            external_version=str(prompt_result['version']),
             prompt_change_notes=data.get('prompt_change_notes'),
             prompt_last_updated=datetime.now().isoformat()
         )
@@ -1054,7 +1065,7 @@ async def update_persona_type_prompt(request):
         return web.json_response({
             'status': 'success',
             'message': f'Updated prompt for persona type: {persona_type}',
-            'version': data.get('external_version', '1.0')
+            'version': prompt_result['version']
         })
         
     except Exception as e:
@@ -1157,6 +1168,94 @@ async def generate_persona_prompt(request):
             'status': 'success',
             'prompt': prompt,
             'message': 'Generated prompt based on persona type'
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def get_persona_prompt_history(request):
+    """GET /api/personas/types/{type}/prompt/history"""
+    try:
+        from database.persona_prompts_database import get_persona_prompts_database
+        
+        persona_type = request.match_info['type']
+        persona_prompts_db = get_persona_prompts_database()
+        
+        # Get history for this persona type
+        history = persona_prompts_db.get_prompt_history(persona_type)
+        
+        return web.json_response({
+            'status': 'success',
+            'history': history
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def get_persona_prompt_version(request):
+    """GET /api/personas/types/{type}/prompt/history/{version}"""
+    try:
+        from database.persona_prompts_database import get_persona_prompts_database
+        
+        persona_type = request.match_info['type']
+        version = int(request.match_info['version'])
+        persona_prompts_db = get_persona_prompts_database()
+        
+        # Get specific version
+        prompt_version = persona_prompts_db.get_prompt_version(persona_type, version)
+        
+        if not prompt_version:
+            return web.json_response({
+                'status': 'error',
+                'message': f'Version {version} not found for {persona_type}'
+            }, status=404)
+        
+        return web.json_response({
+            'status': 'success',
+            'version': prompt_version
+        })
+        
+    except Exception as e:
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def revert_persona_prompt_version(request):
+    """POST /api/personas/types/{type}/prompt/history/{version}/revert"""
+    try:
+        from database.persona_prompts_database import get_persona_prompts_database
+        
+        persona_type = request.match_info['type']
+        version = int(request.match_info['version'])
+        persona_prompts_db = get_persona_prompts_database()
+        
+        # Revert to specific version
+        result = persona_prompts_db.revert_to_version(persona_type, version, 'user')
+        
+        # Also update the persona manager
+        prompt_version = persona_prompts_db.get_prompt_version(persona_type, result['version'])
+        if prompt_version:
+            persona_manager.update_persona_type(
+                persona_type=persona_type,
+                prompt=prompt_version['prompt'],
+                prompt_change_notes=f"Reverted to version {version}",
+                prompt_last_updated=datetime.now().isoformat()
+            )
+        
+        return web.json_response({
+            'status': 'success',
+            'message': result['message'],
+            'new_version': result['version']
         })
         
     except Exception as e:
@@ -1798,6 +1897,11 @@ def register_persona_routes(app):
     app.router.add_put('/api/personas/types/{type}/prompt', update_persona_type_prompt)
     app.router.add_put('/api/personas/types/{type}/mcp-servers', update_persona_type_mcp_servers)
     app.router.add_post('/api/personas/types/{type}/generate-prompt', generate_persona_prompt)
+    
+    # Persona prompt history routes
+    app.router.add_get('/api/personas/types/{type}/prompt/history', get_persona_prompt_history)
+    app.router.add_get('/api/personas/types/{type}/prompt/history/{version}', get_persona_prompt_version)
+    app.router.add_post('/api/personas/types/{type}/prompt/history/{version}/revert', revert_persona_prompt_version)
     
     # Persona workflow routes
     app.router.add_post('/api/personas/types/{type}/workflow', update_persona_workflow)

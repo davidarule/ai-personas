@@ -7697,61 +7697,44 @@ ${type.workflow_yaml || ''}
         
         async function viewPersonaPromptHistory(personaType) {
             try {
-                // Show mock history data for demonstration
-                const mockHistory = [
-                    {
-                        id: 1,
-                        version: '1.2',
-                        created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-                        created_by: 'admin',
-                        change_notes: 'Added security-focused instructions and emphasized threat modeling',
-                        prompt: `You are ${personaType} with expertise in security architecture and threat modeling.
-Focus on identifying potential security vulnerabilities and proposing mitigation strategies.
-Always consider the OWASP Top 10 and follow secure coding practices.`
-                    },
-                    {
-                        id: 2,
-                        version: '1.1',
-                        created_at: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-                        created_by: 'system',
-                        change_notes: 'Initial prompt with basic persona definition',
-                        prompt: `You are ${personaType} responsible for system design and architecture.
-Provide comprehensive technical solutions and architectural guidance.`
-                    },
-                    {
-                        id: 3,
-                        version: '1.0',
-                        created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-                        created_by: 'system',
-                        change_notes: 'Original baseline prompt',
-                        prompt: `You are ${personaType}.`
-                    }
-                ];
+                const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/prompt/history`);
+                const data = await response.json();
                 
-                const historyHtml = mockHistory.map(h => `
-                    <div style="margin-bottom: 20px; padding: 15px; background: #2a2a2a; border-radius: 5px;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                            <strong>Version ${h.version}</strong>
-                            <button class="btn-secondary" onclick="restorePromptVersion('${personaType}', '${h.id}')">Restore</button>
+                if (data.status === 'success' && data.history && data.history.length > 0) {
+                    const historyHtml = data.history.map(h => `
+                        <div style="margin-bottom: 20px; padding: 15px; background: #2a2a2a; border-radius: 5px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <strong>Version ${h.version}</strong>
+                                <div style="display: flex; gap: 10px;">
+                                    <button class="btn-secondary" onclick="viewPromptVersion('${personaType}', ${h.version})">View</button>
+                                    <button class="btn-primary" onclick="restorePromptVersion('${personaType}', ${h.version})">Restore</button>
+                                </div>
+                            </div>
+                            <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
+                                ${new Date(h.created_at).toLocaleString()} by ${h.created_by || 'system'}
+                            </div>
+                            <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
+                                Notes: ${h.change_notes || 'No change notes'}
+                            </div>
+                            <div style="color: #888; font-size: 12px;">
+                                Prompt length: ${h.prompt_length} characters
+                            </div>
                         </div>
-                        <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
-                            ${new Date(h.created_at).toLocaleString()} by ${h.created_by || 'system'}
+                    `).join('');
+                    
+                    showModal('Prompt History', `
+                        <div style="max-height: 60vh; overflow-y: auto;">
+                            ${historyHtml}
                         </div>
-                        <div style="color: #888; font-size: 12px; margin-bottom: 10px;">
-                            Notes: ${h.change_notes || 'None'}
+                    `);
+                } else {
+                    showModal('Prompt History', `
+                        <div style="padding: 20px; text-align: center; color: #888;">
+                            <p>No history available for this persona type.</p>
+                            <p style="margin-top: 10px; font-size: 14px;">History will be created when you save prompt changes.</p>
                         </div>
-                        <pre style="background: #1a1a1a; padding: 10px; border-radius: 5px; overflow: auto; max-height: 200px;">${escapeHtml(h.prompt)}</pre>
-                    </div>
-                `).join('');
-                
-                showModal('Prompt History', `
-                    <div style="max-height: 60vh; overflow-y: auto;">
-                        <p style="color: #f59e0b; margin-bottom: 15px;">
-                            <strong>Note:</strong> This is demonstration data. Real history will be available once backend endpoints are implemented.
-                        </p>
-                        ${historyHtml}
-                    </div>
-                `);
+                    `);
+                }
                 
             } catch (error) {
                 console.error('Error loading prompt history:', error);
@@ -7764,50 +7747,78 @@ Provide comprehensive technical solutions and architectural guidance.`
             return viewPersonaPromptHistory(personaType);
         }
         
-        async function restorePromptVersion(personaType, versionId) {
+        async function viewPromptVersion(personaType, version) {
             try {
-                // Mock implementation for demonstration
-                const mockHistory = {
-                    1: {
-                        version: '1.2',
-                        prompt: `You are ${personaType} with expertise in security architecture and threat modeling.
-Focus on identifying potential security vulnerabilities and proposing mitigation strategies.
-Always consider the OWASP Top 10 and follow secure coding practices.`
-                    },
-                    2: {
-                        version: '1.1',
-                        prompt: `You are ${personaType} responsible for system design and architecture.
-Provide comprehensive technical solutions and architectural guidance.`
-                    },
-                    3: {
-                        version: '1.0',
-                        prompt: `You are ${personaType}.`
-                    }
-                };
+                const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/prompt/history/${version}`);
+                const data = await response.json();
                 
-                const historyItem = mockHistory[versionId];
-                if (historyItem) {
-                    // Update the textarea with the restored prompt
-                    const promptTextarea = document.getElementById('personaPromptText');
-                    if (promptTextarea) {
-                        promptTextarea.value = historyItem.prompt;
-                        
-                        // Update the version display
-                        const versionSpan = document.getElementById('personaPromptVersion');
-                        if (versionSpan) {
-                            versionSpan.textContent = historyItem.version;
-                        }
-                        
-                        // Close the modal
-                        const modal = document.getElementById('modal');
-                        if (modal) {
-                            modal.style.display = 'none';
-                        }
-                        
-                        showNotification(`Restored prompt to version ${historyItem.version}`, 'success');
-                    }
+                if (data.status === 'success' && data.version) {
+                    showModal(`Prompt Version ${version}`, `
+                        <div style="margin-bottom: 10px; color: #888;">
+                            <strong>Created:</strong> ${new Date(data.version.created_at).toLocaleString()}<br>
+                            <strong>Created by:</strong> ${data.version.created_by || 'system'}<br>
+                            <strong>Change notes:</strong> ${data.version.change_notes || 'None'}
+                        </div>
+                        <pre style="background: #1a1a1a; padding: 15px; border-radius: 5px; overflow: auto; max-height: 400px; white-space: pre-wrap;">${escapeHtml(data.version.prompt)}</pre>
+                        <div style="margin-top: 20px; text-align: right;">
+                            <button class="btn-secondary" onclick="closeModal()">Close</button>
+                            <button class="btn-primary" onclick="restorePromptVersion('${personaType}', ${version})">Restore This Version</button>
+                        </div>
+                    `);
                 } else {
                     showNotification('Version not found', 'error');
+                }
+            } catch (error) {
+                console.error('Error viewing prompt version:', error);
+                showNotification('Failed to load prompt version', 'error');
+            }
+        }
+        
+        async function restorePromptVersion(personaType, version) {
+            try {
+                const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/prompt/history/${version}/revert`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    // Update the textarea with the restored prompt
+                    const promptTextarea = document.getElementById('personaPrompt');
+                    if (promptTextarea) {
+                        // Fetch the restored version to get the prompt content
+                        const versionResponse = await fetch(`http://localhost:8080/api/personas/types/${personaType}/prompt/history/${data.new_version}`);
+                        const versionData = await versionResponse.json();
+                        
+                        if (versionData.status === 'success' && versionData.version) {
+                            promptTextarea.value = versionData.version.prompt;
+                            
+                            // Update the version display
+                            const versionSpan = document.getElementById('personaPromptVersion');
+                            if (versionSpan) {
+                                versionSpan.textContent = data.new_version;
+                            }
+                            
+                            // Update last updated time
+                            const updatedSpan = document.getElementById('personaPromptUpdated');
+                            if (updatedSpan) {
+                                updatedSpan.textContent = new Date().toLocaleString();
+                            }
+                        }
+                    }
+                    
+                    // Close the modal
+                    closeModal();
+                    
+                    showNotification(`Restored prompt to version ${version} (created new version ${data.new_version})`, 'success');
+                    
+                    // Reload the persona type to refresh UI
+                    loadPersonaTypes();
+                } else {
+                    showNotification(data.message || 'Failed to restore prompt version', 'error');
                 }
                 
             } catch (error) {
