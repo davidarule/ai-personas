@@ -10520,6 +10520,7 @@ Provide comprehensive technical solutions and architectural guidance.`
                             enabled: true,
                             hasApiKey: true,
                             apiKey: actualApiKey, // Store encrypted in production
+                            apiKeyHint: actualApiKey.length > 4 ? '****' + actualApiKey.slice(-4) : '****',
                             models: selectedModels
                         };
                         

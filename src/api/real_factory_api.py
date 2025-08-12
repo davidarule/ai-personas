@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from personas.processor_factory_new import ProcessorFactory
 from work_queue.work_queue import WorkQueue
 from orchestration.azure_devops_api_client import AzureDevOpsClient
-from database import get_log_database, get_tools_database, get_prompts_database, get_workflows_database, get_workflow_categories_database, get_workflow_diagrams_database, get_repository_database, get_workflow_history_database
+from database import get_log_database, get_tools_database, get_prompts_database, get_workflows_database, get_workflow_categories_database, get_workflow_diagrams_database, get_repository_database, get_workflow_history_database, get_agents_database
 from persona_api_integration import register_persona_routes
 
 logging.basicConfig(level=logging.INFO)
@@ -53,6 +53,7 @@ class RealFactoryAPI:
         self.workflow_diagrams_db = get_workflow_diagrams_database()  # Initialize workflow diagrams database
         self.workflow_history_db = get_workflow_history_database()  # Initialize workflow history database
         self.repository_db = get_repository_database()  # Initialize repository database
+        self.agents_db = get_agents_database()  # Initialize agents database
         self._initialize_factory()
         self._initialize_azure_client()
         self._migrate_tools_if_needed()

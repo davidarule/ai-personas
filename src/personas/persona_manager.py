@@ -681,3 +681,45 @@ class PersonaManager:
         
         # Log available persona types for debugging
         logger.info(f"Available persona types in registry: {list(self.registry._configs.keys())}")
+    
+    def get_agent_settings(self) -> Dict[str, Any]:
+        """Get agent settings from the database
+        
+        Returns:
+            Dictionary containing agent configuration
+        """
+        try:
+            # Import here to avoid circular dependency
+            import sys
+            import os
+            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from database import get_agents_database
+            
+            agents_db = get_agents_database()
+            return agents_db.get_all_settings()
+        except Exception as e:
+            logger.error(f"Error getting agent settings: {str(e)}")
+            # Return empty settings on error
+            return {'providers': {}, 'customProviders': []}
+    
+    def update_agent_settings(self, settings: Dict[str, Any]) -> bool:
+        """Update agent settings in the database
+        
+        Args:
+            settings: Dictionary containing providers and customProviders
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            # Import here to avoid circular dependency
+            import sys
+            import os
+            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from database import get_agents_database
+            
+            agents_db = get_agents_database()
+            return agents_db.update_settings(settings)
+        except Exception as e:
+            logger.error(f"Error updating agent settings: {str(e)}")
+            return False
