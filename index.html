@@ -1393,7 +1393,7 @@
             <div id="personaList" class="persona-list"></div>
             
             <button onclick="showCreatePersonaModal()" style="width: 100%; margin: 10px 0; background: #3b82f6;">
-                <span style="font-size: 16px;">+</span> Persona
+                <span style="font-size: 16px;">&plus;</span> Persona
             </button>
             
             <div class="legend">
@@ -4635,10 +4635,10 @@ steps:
                         <div style="border-top: 1px solid #333; padding-top: 20px; flex-shrink: 0;">
                             <div style="margin-bottom: 15px; display: flex; gap: 10px;">
                                 <button type="button" class="btn-primary" onclick="addNewWorkflow()">
-                                    <span style="font-size: 16px;">+</span> Workflow
+                                    <span style="font-size: 16px;">&plus;</span> Workflow
                                 </button>
                                 <button type="button" class="btn-primary" onclick="addNewWorkflowCategory()">
-                                    <span style="font-size: 16px;">+</span> Workflow Category
+                                    <span style="font-size: 16px;">&plus;</span> Workflow Category
                                 </button>
                             </div>
                             
@@ -4662,7 +4662,7 @@ steps:
                             </p>
                             
                             <button id="createPersonaBtn" class="btn-primary" onclick="showCreatePersonaModal()">
-                                <span style="font-size: 16px;">+</span> Persona Type
+                                <span style="font-size: 16px;">&plus;</span> Persona Type
                             </button>
                         </div>
                         
@@ -4766,7 +4766,7 @@ steps:
                         
                         <!-- Tool Management Buttons -->
                         <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
-                            <button class="btn-secondary" onclick="addToolCategory()">+ Add Category</button>
+                            <button class="btn-secondary" onclick="addToolCategory()">&plus; Add Category</button>
                             <button class="btn-secondary" onclick="importToolsFromMD()">Import from MD</button>
                             <button class="btn-secondary" onclick="exportToolsToMD()">Export to MD</button>
                             <div style="border-left: 1px solid #444; height: 20px; margin: 0 5px;"></div>
@@ -4809,7 +4809,7 @@ steps:
                             </div>
                             <div style="display: flex; gap: 10px; align-items: center;">
                                 <button class="btn-secondary" onclick="addNewProvider()">
-                                    <span style="font-size: 16px;">+</span> Add Provider
+                                    <span style="font-size: 16px;">&plus;</span> Add Provider
                                 </button>
                                 <div style="border-left: 1px solid #444; height: 20px; margin: 0 5px;"></div>
                                 <button class="btn-primary" onclick="refreshAllProviders()">
@@ -6258,7 +6258,7 @@ ${escapeHtml(version.prompt)}
             }
             
             if (messageEl) {
-                messageEl.innerHTML = message.replace(/\n/g, '<br>') + '<span class="message-close" onclick="closeSettingsMessage()">X</span>';
+                messageEl.innerHTML = message.replace(/\n/g, '<br>') + '<span class="message-close" onclick="closeSettingsMessage()">&times;</span>';
                 messageEl.style.display = 'block';
                 messageEl.style.background = type === 'error' ? '#dc2626' : 
                                            type === 'success' ? '#22c55e' : 
@@ -7876,7 +7876,7 @@ Provide comprehensive technical solutions and architectural guidance.`
                 // Show saving state
                 const saveButton = document.querySelector(`button[onclick="savePersonaWorkflow('${personaType}')"]`);
                 const originalText = saveButton.innerHTML;
-                saveButton.innerHTML = '<span style="margin-right: 5px;">⌛</span>Saving...';
+                saveButton.innerHTML = '<span style="margin-right: 5px;">&#8987;</span>Saving...';
                 saveButton.disabled = true;
                 
                 const response = await fetch(`http://localhost:8080/api/personas/types/${personaType}/workflow`, {
@@ -7925,7 +7925,7 @@ Provide comprehensive technical solutions and architectural guidance.`
                 // Restore button on error
                 const saveButton = document.querySelector(`button[onclick="savePersonaWorkflow('${personaType}')"]`);
                 if (saveButton) {
-                    saveButton.innerHTML = '<span style="margin-right: 5px;">💾</span>Save Workflow';
+                    saveButton.innerHTML = '<span style="margin-right: 5px;">&#128190;</span>Save Workflow';
                     saveButton.disabled = false;
                 }
             }
@@ -8240,7 +8240,7 @@ steps:
                         </p>
                         
                         <button id="createPersonaBtn" class="btn-primary" onclick="showCreatePersonaModal()">
-                            <span style="font-size: 16px;">+</span> Create New Persona Type
+                            <span style="font-size: 16px;">&plus;</span> Create New Persona Type
                         </button>
                     </div>
                     
@@ -9655,7 +9655,7 @@ steps:
                                             ${skill}
                                             <button onclick="removeSkill('${skill}')" style="background: none; border: none; 
                                                     color: #888; cursor: pointer; font-size: 16px; padding: 0; line-height: 1;">
-                                                ×
+                                                &times;
                                             </button>
                                         </span>
                                     `).join('')}
@@ -9763,7 +9763,7 @@ steps:
                 ${skill}
                 <button onclick="removeSkill('${skill}')" style="background: none; border: none; 
                         color: #888; cursor: pointer; font-size: 16px; padding: 0; line-height: 1;">
-                    ×
+                    &times;
                 </button>
             `;
             
@@ -12169,7 +12169,7 @@ ${data.prompt}
                         <div class="section-container">
                             <div class="section-header ${window.personaInstanceSectionExpanded['basic'] === false ? 'collapsed' : ''}" 
                                  onclick="togglePersonaInstanceSection('basic')">
-                                <span class="section-toggle">${window.personaInstanceSectionExpanded['basic'] === false ? '▶' : '▼'}</span>
+                                <span class="section-toggle">${window.personaInstanceSectionExpanded['basic'] === false ? '&#9654;' : '&#9660;'}</span>
                                 <h3>Basic Information</h3>
                             </div>
                             <div class="section-content" id="persona-instance-basic-section" 
@@ -12217,7 +12217,7 @@ ${data.prompt}
                         <div class="section-container">
                             <div class="section-header ${window.personaInstanceSectionExpanded['skills'] === false ? 'collapsed' : ''}" 
                                  onclick="togglePersonaInstanceSection('skills')">
-                                <span class="section-toggle">${window.personaInstanceSectionExpanded['skills'] === false ? '▶' : '▼'}</span>
+                                <span class="section-toggle">${window.personaInstanceSectionExpanded['skills'] === false ? '&#9654;' : '&#9660;'}</span>
                                 <h3>Skills</h3>
                             </div>
                             <div class="section-content" id="persona-instance-skills-section" 
@@ -12227,7 +12227,7 @@ ${data.prompt}
                                         ${(instance.skills || []).map(skill => `
                                             <span class="skill-tag">
                                                 ${skill}
-                                                <span class="remove-skill" onclick="removeInstanceSkill('${skill}')">×</span>
+                                                <span class="remove-skill" onclick="removeInstanceSkill('${skill}')">&times;</span>
                                             </span>
                                         `).join('')}
                                     </div>
@@ -12244,7 +12244,7 @@ ${data.prompt}
                         <div class="section-container">
                             <div class="section-header ${window.personaInstanceSectionExpanded['mcp'] === false ? 'collapsed' : ''}" 
                                  onclick="togglePersonaInstanceSection('mcp')">
-                                <span class="section-toggle">${window.personaInstanceSectionExpanded['mcp'] === false ? '▶' : '▼'}</span>
+                                <span class="section-toggle">${window.personaInstanceSectionExpanded['mcp'] === false ? '&#9654;' : '&#9660;'}</span>
                                 <h3>MCP Servers</h3>
                             </div>
                             <div class="section-content" id="persona-instance-mcp-section" 
@@ -12259,7 +12259,7 @@ ${data.prompt}
                         <div class="section-container">
                             <div class="section-header ${window.personaInstanceSectionExpanded['tools'] === false ? 'collapsed' : ''}" 
                                  onclick="togglePersonaInstanceSection('tools')">
-                                <span class="section-toggle">${window.personaInstanceSectionExpanded['tools'] === false ? '▶' : '▼'}</span>
+                                <span class="section-toggle">${window.personaInstanceSectionExpanded['tools'] === false ? '&#9654;' : '&#9660;'}</span>
                                 <h3>Tools</h3>
                             </div>
                             <div class="section-content" id="persona-instance-tools-section" 
@@ -12278,7 +12278,7 @@ ${data.prompt}
                         <div class="section-container">
                             <div class="section-header ${window.personaInstanceSectionExpanded['metrics'] === false ? 'collapsed' : ''}" 
                                  onclick="togglePersonaInstanceSection('metrics')">
-                                <span class="section-toggle">${window.personaInstanceSectionExpanded['metrics'] === false ? '▶' : '▼'}</span>
+                                <span class="section-toggle">${window.personaInstanceSectionExpanded['metrics'] === false ? '&#9654;' : '&#9660;'}</span>
                                 <h3>Metrics</h3>
                             </div>
                             <div class="section-content" id="persona-instance-metrics-section" 
@@ -12330,7 +12330,7 @@ ${data.prompt}
                 header.classList.toggle('collapsed');
                 const toggle = header.querySelector('.section-toggle');
                 if (toggle) {
-                    toggle.textContent = window.personaInstanceSectionExpanded[section] ? '▼' : '▶';
+                    toggle.textContent = window.personaInstanceSectionExpanded[section] ? '&#9660;' : '&#9654;';
                 }
             }
             
@@ -12367,7 +12367,7 @@ ${data.prompt}
         function getCurrentInstanceSkills() {
             const skills = [];
             document.querySelectorAll('#instanceSkillsList .skill-tag').forEach(tag => {
-                const skillText = tag.textContent.replace('×', '').trim();
+                const skillText = tag.textContent.replace('&times;', '').trim();
                 if (skillText) skills.push(skillText);
             });
             return skills;
@@ -12399,7 +12399,7 @@ ${data.prompt}
             container.innerHTML = skills.map(skill => `
                 <span class="skill-tag">
                     ${skill}
-                    <span class="remove-skill" onclick="removeInstanceSkill('${skill}')">×</span>
+                    <span class="remove-skill" onclick="removeInstanceSkill('${skill}')">&times;</span>
                 </span>
             `).join('');
         }
@@ -12621,7 +12621,7 @@ ${data.prompt}
             
             const skills = [];
             skillsList.querySelectorAll('.skill-item').forEach(item => {
-                skills.push(item.textContent.replace('×', '').trim());
+                skills.push(item.textContent.replace('&times;', '').trim());
             });
             return skills;
         }
