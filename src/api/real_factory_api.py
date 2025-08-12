@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from personas.processor_factory_new import ProcessorFactory
 from work_queue.work_queue import WorkQueue
 from orchestration.azure_devops_api_client import AzureDevOpsClient
-from database import get_log_database, get_tools_database, get_prompts_database, get_workflows_database, get_workflow_categories_database, get_workflow_diagrams_database, get_repository_database, get_workflow_history_database, get_agents_database
+from database import get_log_database, get_tools_database, get_prompts_database, get_workflows_database, get_workflow_categories_database, get_workflow_diagrams_database, get_repository_database, get_workflow_history_database, get_agents_database, get_settings_database
 from persona_api_integration import register_persona_routes
 
 logging.basicConfig(level=logging.INFO)
@@ -54,6 +54,7 @@ class RealFactoryAPI:
         self.workflow_history_db = get_workflow_history_database()  # Initialize workflow history database
         self.repository_db = get_repository_database()  # Initialize repository database
         self.agents_db = get_agents_database()  # Initialize agents database
+        self.settings_db = get_settings_database()  # Initialize settings database
         self._initialize_factory()
         self._initialize_azure_client()
         self._migrate_tools_if_needed()
@@ -104,21 +105,28 @@ class RealFactoryAPI:
     def _initialize_azure_client(self):
         """Initialize Azure DevOps client"""
         try:
-            # Always get PAT from environment variable
-            pat = os.getenv("AZURE_DEVOPS_PAT")
+            # First try to get PAT from database
+            pat = self.settings_db.get_decrypted_credential("azure_devops_pat")
             
-            # Check for saved settings for org URL
-            org_url = None
-            settings_file = Path(__file__).parent.parent.parent / "settings.json"
-            if settings_file.exists():
-                try:
-                    with open(settings_file, 'r') as f:
-                        settings = json.load(f)
-                        org_url = settings.get('orgUrl')
-                except Exception as e:
-                    self.log_event("error", f"Failed to load settings: {str(e)}")
+            # Fallback to environment variable if not in database
+            if not pat:
+                pat = os.getenv("AZURE_DEVOPS_PAT")
             
-            # Fallback to environment variable for org URL if not in settings
+            # Get org URL from settings database
+            org_url = self.settings_db.get_setting('orgUrl')
+            
+            # Fallback to settings.json for backward compatibility
+            if not org_url:
+                settings_file = Path(__file__).parent.parent.parent / "settings.json"
+                if settings_file.exists():
+                    try:
+                        with open(settings_file, 'r') as f:
+                            settings = json.load(f)
+                            org_url = settings.get('orgUrl')
+                    except Exception as e:
+                        self.log_event("error", f"Failed to load settings: {str(e)}")
+            
+            # Final fallback to environment variable
             if not org_url:
                 org_url = os.getenv("AZURE_DEVOPS_ORG")
                         
@@ -573,32 +581,65 @@ class RealFactoryAPI:
             
     async def get_settings(self, request):
         """GET /api/settings - Get current Azure DevOps settings"""
+        # Get settings from database first
+        db_settings = self.settings_db.get_all_settings()
+        
+        # Get PAT status
+        pat_info = self.settings_db.get_credential('azure_devops_pat')
+        
+        # Merge with settings.json for backward compatibility
         settings_file = Path(__file__).parent.parent.parent / "settings.json"
         if settings_file.exists():
             try:
                 with open(settings_file, 'r') as f:
-                    settings = json.load(f)
-                    # Don't send PAT token to frontend for security
-                    if 'patToken' in settings:
-                        settings['hasPatToken'] = True
-                        del settings['patToken']
-                    return web.json_response(settings)
+                    file_settings = json.load(f)
+                    # Merge settings, database takes precedence
+                    for key, value in file_settings.items():
+                        if key not in db_settings and key != 'patToken':
+                            db_settings[key] = value
             except Exception as e:
-                self.log_event("error", f"Failed to load settings: {str(e)}")
-        return web.json_response({})
+                self.log_event("error", f"Failed to load settings file: {str(e)}")
+        
+        # Add PAT status
+        if pat_info:
+            db_settings['hasPatToken'] = True
+            db_settings['patTokenHint'] = pat_info.get('hint', '')
+            db_settings['patTokenUpdated'] = pat_info.get('updated_at', '')
+        else:
+            # Check environment variable as fallback
+            db_settings['hasPatToken'] = bool(os.getenv('AZURE_DEVOPS_PAT'))
+            db_settings['patTokenHint'] = '****' if db_settings['hasPatToken'] else ''
+        
+        return web.json_response(db_settings)
         
     async def save_settings(self, request):
         """POST /api/settings - Save Azure DevOps settings"""
         try:
             data = await request.json()
             org_url = data.get('orgUrl', '').strip()
+            pat_token = data.get('patToken', '').strip()
             
             if not org_url:
                 return web.json_response({'error': 'Organization URL is required'}, status=400)
             
-            # Check if PAT is available in environment
-            if not os.getenv('AZURE_DEVOPS_PAT'):
-                return web.json_response({'error': 'AZURE_DEVOPS_PAT environment variable not set'}, status=400)
+            # Save org URL to settings database
+            self.settings_db.set_setting('orgUrl', org_url)
+            
+            # Handle PAT token if provided
+            if pat_token:
+                # Store encrypted PAT in database
+                success = self.settings_db.set_credential(
+                    'azure_devops_pat', 
+                    pat_token, 
+                    'Azure DevOps Personal Access Token'
+                )
+                if not success:
+                    return web.json_response({'error': 'Failed to save PAT token securely'}, status=500)
+            else:
+                # Check if we have a PAT available (either in DB or env var)
+                existing_pat = self.settings_db.get_decrypted_credential("azure_devops_pat")
+                if not existing_pat and not os.getenv('AZURE_DEVOPS_PAT'):
+                    return web.json_response({'error': 'No PAT token available. Please provide one.'}, status=400)
             
             # Load existing settings if they exist
             existing_settings = {}
@@ -610,12 +651,19 @@ class RealFactoryAPI:
                 except:
                     pass
             
-            # Save settings to file - preserve existing settings but never save PAT
+            # Save other settings to database
+            system_log_retention = data.get('systemLogRetentionDays', existing_settings.get('systemLogRetentionDays', 7))
+            persona_log_retention = data.get('personaLogRetentionDays', existing_settings.get('personaLogRetentionDays', 7))
+            
+            self.settings_db.set_setting('systemLogRetentionDays', system_log_retention)
+            self.settings_db.set_setting('personaLogRetentionDays', persona_log_retention)
+            
+            # Also save to settings.json for backward compatibility (without PAT)
             settings = existing_settings.copy()
             settings.update({
                 'orgUrl': org_url,
-                'systemLogRetentionDays': data.get('systemLogRetentionDays', existing_settings.get('systemLogRetentionDays', 7)),
-                'personaLogRetentionDays': data.get('personaLogRetentionDays', existing_settings.get('personaLogRetentionDays', 7)),
+                'systemLogRetentionDays': system_log_retention,
+                'personaLogRetentionDays': persona_log_retention,
                 'savedAt': datetime.now().isoformat()
             })
             
@@ -646,11 +694,15 @@ class RealFactoryAPI:
             if not org_url:
                 return web.json_response({'error': 'Organization URL is required'}, status=400)
             
-            # Always use PAT from environment variable
-            pat_token = os.getenv('AZURE_DEVOPS_PAT')
+            # First try to get PAT from database
+            pat_token = self.settings_db.get_decrypted_credential("azure_devops_pat")
+            
+            # Fallback to environment variable if not in database
+            if not pat_token:
+                pat_token = os.getenv('AZURE_DEVOPS_PAT')
             
             if not pat_token:
-                return web.json_response({'error': 'AZURE_DEVOPS_PAT environment variable not set'}, status=400)
+                return web.json_response({'error': 'No PAT token available. Please configure one in settings.'}, status=400)
                 
             # Create temporary client to test connection
             test_client = AzureDevOpsClient(org_url, pat_token)

@@ -8,6 +8,7 @@ import json
 import logging
 from datetime import datetime
 from aiohttp import web
+import aiohttp
 import sys
 import os
 # Add the parent directory to the path to allow imports
@@ -1237,9 +1238,24 @@ async def update_agent_settings(request):
         success = persona_manager.update_agent_settings(data) if hasattr(persona_manager, 'update_agent_settings') else True
         
         if success:
+            # Get the updated settings to return the hints
+            updated_settings = persona_manager.get_agent_settings() if hasattr(persona_manager, 'get_agent_settings') else {}
+            
+            # Extract provider hints
+            provider_hints = {}
+            if 'providers' in updated_settings:
+                for provider_id, config in updated_settings['providers'].items():
+                    if config.get('apiKeyHint'):
+                        provider_hints[provider_id] = {
+                            'apiKeyHint': config['apiKeyHint']
+                        }
+            
             return web.json_response({
                 'status': 'success',
-                'message': 'Agent settings updated successfully'
+                'message': 'Agent settings updated successfully',
+                'data': {
+                    'providers': provider_hints
+                }
             })
         else:
             return web.json_response({
@@ -1249,6 +1265,187 @@ async def update_agent_settings(request):
             
     except Exception as e:
         logger.error(f"Error updating agent settings: {str(e)}")
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+# AI Provider Test Connection Endpoints
+
+async def test_openai_connection(request):
+    """POST /api/test-connection/openai - Test OpenAI API connection"""
+    try:
+        data = await request.json()
+        api_key = data.get('apiKey', '').strip()
+        
+        # Get existing key if not provided
+        if not api_key:
+            # Try to get from database
+            try:
+                api_key = persona_manager.get_provider_api_key('openai')
+                logger.info(f"Retrieved API key from database: {'Yes' if api_key else 'No'}")
+            except Exception as e:
+                logger.error(f"Error retrieving API key: {str(e)}")
+        
+        if not api_key:
+            logger.warning("No API key available for OpenAI test connection")
+            return web.json_response({
+                'status': 'error',
+                'message': 'No API key available. Please enter an API key or save one first.'
+            }, status=400)
+        
+        # Test OpenAI API
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            # Try to list models as a simple test
+            async with session.get('https://api.openai.com/v1/models', headers=headers) as resp:
+                if resp.status == 200:
+                    models = await resp.json()
+                    return web.json_response({
+                        'status': 'success',
+                        'message': f'Connected successfully! Found {len(models.get("data", []))} models.',
+                        'provider': 'OpenAI'
+                    })
+                elif resp.status == 401:
+                    return web.json_response({
+                        'status': 'error',
+                        'message': 'Invalid API key'
+                    }, status=401)
+                else:
+                    return web.json_response({
+                        'status': 'error',
+                        'message': f'API error: {resp.status}'
+                    }, status=resp.status)
+                    
+    except Exception as e:
+        logger.error(f"Error testing OpenAI connection: {str(e)}")
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def test_anthropic_connection(request):
+    """POST /api/test-connection/anthropic - Test Anthropic API connection"""
+    try:
+        data = await request.json()
+        api_key = data.get('apiKey', '').strip()
+        
+        # Get existing key if not provided
+        if not api_key:
+            try:
+                api_key = persona_manager.get_provider_api_key('anthropic')
+                logger.info(f"Retrieved Anthropic API key from database: {'Yes' if api_key else 'No'}")
+            except Exception as e:
+                logger.error(f"Error retrieving Anthropic API key: {str(e)}")
+        
+        if not api_key:
+            logger.warning("No API key available for Anthropic test connection")
+            return web.json_response({
+                'status': 'error',
+                'message': 'No API key available. Please enter an API key or save one first.'
+            }, status=400)
+        
+        # Test Anthropic API
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            headers = {
+                'x-api-key': api_key,
+                'anthropic-version': '2023-06-01',
+                'Content-Type': 'application/json'
+            }
+            
+            # Simple test - try to get account info or send minimal completion
+            test_data = {
+                "model": "claude-3-haiku-20240307",
+                "max_tokens": 1,
+                "messages": [{"role": "user", "content": "Hi"}]
+            }
+            
+            async with session.post('https://api.anthropic.com/v1/messages', 
+                                  headers=headers, 
+                                  json=test_data) as resp:
+                if resp.status == 200:
+                    return web.json_response({
+                        'status': 'success',
+                        'message': 'Connected successfully to Anthropic!',
+                        'provider': 'Anthropic'
+                    })
+                elif resp.status == 401:
+                    return web.json_response({
+                        'status': 'error',
+                        'message': 'Invalid API key'
+                    }, status=401)
+                else:
+                    error_data = await resp.text()
+                    return web.json_response({
+                        'status': 'error',
+                        'message': f'API error: {resp.status} - {error_data}'
+                    }, status=resp.status)
+                    
+    except Exception as e:
+        logger.error(f"Error testing Anthropic connection: {str(e)}")
+        return web.json_response({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)
+
+
+async def test_gemini_connection(request):
+    """POST /api/test-connection/gemini - Test Google Gemini API connection"""
+    try:
+        data = await request.json()
+        api_key = data.get('apiKey', '').strip()
+        
+        # Get existing key if not provided
+        if not api_key:
+            try:
+                api_key = persona_manager.get_provider_api_key('gemini')
+                logger.info(f"Retrieved Gemini API key from database: {'Yes' if api_key else 'No'}")
+            except Exception as e:
+                logger.error(f"Error retrieving Gemini API key: {str(e)}")
+        
+        if not api_key:
+            logger.warning("No API key available for Gemini test connection")
+            return web.json_response({
+                'status': 'error',
+                'message': 'No API key available. Please enter an API key or save one first.'
+            }, status=400)
+        
+        # Test Gemini API
+        import aiohttp
+        async with aiohttp.ClientSession() as session:
+            # List models endpoint
+            url = f'https://generativelanguage.googleapis.com/v1/models?key={api_key}'
+            
+            async with session.get(url) as resp:
+                if resp.status == 200:
+                    models = await resp.json()
+                    return web.json_response({
+                        'status': 'success',
+                        'message': f'Connected successfully! Found {len(models.get("models", []))} models.',
+                        'provider': 'Google Gemini'
+                    })
+                elif resp.status == 400 or resp.status == 403:
+                    return web.json_response({
+                        'status': 'error',
+                        'message': 'Invalid API key'
+                    }, status=401)
+                else:
+                    error_data = await resp.text()
+                    return web.json_response({
+                        'status': 'error',
+                        'message': f'API error: {resp.status} - {error_data}'
+                    }, status=resp.status)
+                    
+    except Exception as e:
+        logger.error(f"Error testing Gemini connection: {str(e)}")
         return web.json_response({
             'status': 'error',
             'message': str(e)
@@ -1511,6 +1708,11 @@ def register_persona_routes(app):
     app.router.add_get('/api/settings/agents', get_agent_settings)
     app.router.add_put('/api/settings/agents', update_agent_settings)
     app.router.add_post('/api/tools/category/{category_name}/toggle-all', toggle_category_tools)
+    
+    # AI Provider test connection routes
+    app.router.add_post('/api/test-connection/openai', test_openai_connection)
+    app.router.add_post('/api/test-connection/anthropic', test_anthropic_connection)
+    app.router.add_post('/api/test-connection/gemini', test_gemini_connection)
     
     # Repository routes
     app.router.add_get('/api/repository/structure', get_repository_structure)

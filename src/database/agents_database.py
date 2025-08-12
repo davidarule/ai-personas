@@ -10,6 +10,12 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Any
 from pathlib import Path
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from utils.encryption_utils import get_encryption_manager, is_encryption_available, EncryptionError
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +32,7 @@ class AgentsDatabase:
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_database()
+        self._migrate_database()
     
     def _init_database(self):
         """Initialize database tables"""
@@ -39,7 +46,9 @@ class AgentsDatabase:
                     provider_name TEXT NOT NULL,
                     enabled BOOLEAN DEFAULT 0,
                     has_api_key BOOLEAN DEFAULT 0,
+                    encrypted_api_key TEXT,  -- Encrypted API key storage
                     api_key_hint TEXT,  -- Store last 4 chars for UI display
+                    key_version INTEGER DEFAULT 1,  -- For key rotation tracking
                     selected_models TEXT,  -- JSON array of model IDs
                     is_custom BOOLEAN DEFAULT 0,
                     description TEXT,
@@ -82,6 +91,25 @@ class AgentsDatabase:
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_custom_models_provider ON custom_models(provider_id)')
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_history_timestamp ON settings_history(changed_at DESC)')
             
+            conn.commit()
+    
+    def _migrate_database(self):
+        """Migrate database schema to add new columns if they don't exist"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Check if encrypted_api_key column exists
+            cursor.execute("PRAGMA table_info(provider_configs)")
+            columns = [column[1] for column in cursor.fetchall()]
+            
+            if 'encrypted_api_key' not in columns:
+                logger.info("Migrating database: adding encrypted_api_key column")
+                cursor.execute('ALTER TABLE provider_configs ADD COLUMN encrypted_api_key TEXT')
+                
+            if 'key_version' not in columns:
+                logger.info("Migrating database: adding key_version column")
+                cursor.execute('ALTER TABLE provider_configs ADD COLUMN key_version INTEGER DEFAULT 1')
+                
             conn.commit()
     
     def get_all_settings(self) -> Dict[str, Any]:
@@ -179,30 +207,88 @@ class AgentsDatabase:
                         
                         if exists:
                             # Update existing provider
+                            # Handle encryption if API key is provided
+                            encrypted_key = None
+                            key_hint = config.get('apiKeyHint', '')
+                            has_api_key = False
+                            
+                            if 'apiKey' in config and config['apiKey']:
+                                logger.info(f"Processing API key for {provider_id}")
+                                if is_encryption_available():
+                                    try:
+                                        encryption_manager = get_encryption_manager()
+                                        encrypted_key, key_hint = encryption_manager.encrypt_api_key(
+                                            config['apiKey'], provider_id
+                                        )
+                                        has_api_key = True
+                                        logger.info(f"Successfully encrypted API key for {provider_id}")
+                                    except EncryptionError as e:
+                                        logger.error(f"Failed to encrypt API key for {provider_id}: {str(e)}")
+                                        # Continue without encryption
+                                else:
+                                    logger.warning(f"Encryption not available for {provider_id}")
+                            elif config.get('hasApiKey', False):
+                                # Frontend says there's a key but didn't send it - keep existing
+                                logger.info(f"Keeping existing API key for {provider_id}")
+                                # Don't update encryption fields, just other fields
+                                cursor.execute('''
+                                    UPDATE provider_configs
+                                    SET enabled = ?, selected_models = ?, updated_at = CURRENT_TIMESTAMP
+                                    WHERE provider_id = ?
+                                ''', (
+                                    config.get('enabled', False),
+                                    json.dumps(config.get('models', [])),
+                                    provider_id
+                                ))
+                                continue
+                            
                             cursor.execute('''
                                 UPDATE provider_configs
-                                SET enabled = ?, has_api_key = ?, api_key_hint = ?, 
+                                SET enabled = ?, has_api_key = ?, encrypted_api_key = ?, api_key_hint = ?, 
                                     selected_models = ?, updated_at = CURRENT_TIMESTAMP
                                 WHERE provider_id = ?
                             ''', (
                                 config.get('enabled', False),
-                                config.get('hasApiKey', False),
-                                config.get('apiKeyHint', '') if config.get('apiKeyHint') else '',
+                                has_api_key,
+                                encrypted_key if encrypted_key else None,
+                                key_hint if has_api_key else '',
                                 json.dumps(config.get('models', [])),
                                 provider_id
                             ))
                         else:
                             # Insert new provider (built-in)
+                            # Handle encryption if API key is provided
+                            encrypted_key = None
+                            key_hint = config.get('apiKeyHint', '')
+                            has_api_key = False
+                            
+                            if 'apiKey' in config and config['apiKey']:
+                                logger.info(f"Processing API key for new provider {provider_id}")
+                                if is_encryption_available():
+                                    try:
+                                        encryption_manager = get_encryption_manager()
+                                        encrypted_key, key_hint = encryption_manager.encrypt_api_key(
+                                            config['apiKey'], provider_id
+                                        )
+                                        has_api_key = True
+                                        logger.info(f"Successfully encrypted API key for new provider {provider_id}")
+                                    except EncryptionError as e:
+                                        logger.error(f"Failed to encrypt API key for {provider_id}: {str(e)}")
+                                        # Continue without encryption
+                                else:
+                                    logger.warning(f"Encryption not available for {provider_id}")
+                                    
                             cursor.execute('''
                                 INSERT INTO provider_configs 
-                                (provider_id, provider_name, enabled, has_api_key, api_key_hint, selected_models, is_custom)
-                                VALUES (?, ?, ?, ?, ?, ?, 0)
+                                (provider_id, provider_name, enabled, has_api_key, encrypted_api_key, api_key_hint, selected_models, is_custom)
+                                VALUES (?, ?, ?, ?, ?, ?, ?, 0)
                             ''', (
                                 provider_id,
                                 provider_id.title(),  # Use title case for built-in providers
                                 config.get('enabled', False),
-                                config.get('hasApiKey', False),
-                                config.get('apiKeyHint', '') if config.get('apiKeyHint') else '',
+                                has_api_key,
+                                encrypted_key if encrypted_key else None,
+                                key_hint if has_api_key else '',
                                 json.dumps(config.get('models', []))
                             ))
                         
@@ -331,6 +417,51 @@ class AgentsDatabase:
         except Exception as e:
             logger.error(f"Error getting settings history: {str(e)}")
             return []
+
+
+    def get_decrypted_api_key(self, provider_id: str) -> Optional[str]:
+        """Get the decrypted API key for a provider
+        
+        Args:
+            provider_id: The provider ID
+            
+        Returns:
+            Decrypted API key or None if not found/available
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                
+                cursor.execute('''
+                    SELECT encrypted_api_key, has_api_key
+                    FROM provider_configs
+                    WHERE provider_id = ?
+                ''', (provider_id,))
+                
+                row = cursor.fetchone()
+                if not row or not row[1]:  # No row or has_api_key is False
+                    return None
+                    
+                encrypted_key = row[0]
+                if not encrypted_key:
+                    return None
+                
+                # Check if encryption is available
+                if not is_encryption_available():
+                    logger.error("Cannot decrypt API key - ENCRYPTION_KEY not configured")
+                    return None
+                
+                # Decrypt the key
+                try:
+                    encryption_manager = get_encryption_manager()
+                    return encryption_manager.decrypt_api_key(encrypted_key, provider_id)
+                except EncryptionError as e:
+                    logger.error(f"Failed to decrypt API key for {provider_id}: {str(e)}")
+                    return None
+                    
+        except Exception as e:
+            logger.error(f"Error getting decrypted API key: {str(e)}")
+            return None
 
 
 # Singleton instance

@@ -718,8 +718,31 @@ class PersonaManager:
             sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             from database import get_agents_database
             
+            # The database will handle encryption, so just pass the settings through
             agents_db = get_agents_database()
             return agents_db.update_settings(settings)
         except Exception as e:
             logger.error(f"Error updating agent settings: {str(e)}")
             return False
+    
+    def get_provider_api_key(self, provider_id: str) -> Optional[str]:
+        """Get the decrypted API key for a provider (for internal use only)
+        
+        Args:
+            provider_id: The provider ID (e.g., 'openai', 'anthropic')
+            
+        Returns:
+            Decrypted API key or None if not available
+        """
+        try:
+            # Import here to avoid circular dependency
+            import sys
+            import os
+            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from database import get_agents_database
+            
+            agents_db = get_agents_database()
+            return agents_db.get_decrypted_api_key(provider_id)
+        except Exception as e:
+            logger.error(f"Error getting provider API key: {str(e)}")
+            return None

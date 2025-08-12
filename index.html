@@ -191,15 +191,23 @@
             background: #4a5568;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 16px;  /* Updated to match btn-primary */
             border-radius: 4px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;     /* Updated to match btn-primary */
             transition: background-color 0.3s ease;
         }
         
         .btn-secondary:hover {
             background: #5a6578;
+        }
+        
+        /* Test connection button state */
+        .btn-secondary.has-changes {
+            background: #22c55e; /* Green when API key changed */
+        }
+        .btn-secondary.has-changes:hover {
+            background: #16a34a;
         }
         
         .btn-icon {
@@ -3230,7 +3238,7 @@ ${workflow.raw_yaml || jsyaml.dump(workflow.raw_data, {indent: 2, lineWidth: -1}
                 validationDiv.style.display = 'block';
                 validationDiv.style.background = '#4d1a1a';
                 validationDiv.style.border = '1px solid #7a2d2d';
-                validationDiv.innerHTML = `<span style="color: #f87171;">✗ ${escapeHtml(error.message)}</span>`;
+                validationDiv.innerHTML = `<span style="color: #f87171;">&#10007; ${escapeHtml(error.message)}</span>`;
             }
         }
         
@@ -4306,11 +4314,16 @@ steps:
                         
                         <div style="margin-bottom: 20px;">
                             <label style="display: block; margin-bottom: 5px; color: #ccc;">Personal Access Token (PAT)</label>
-                            <div style="padding: 10px; background: #2a2a2a; border: 1px solid #444; 
-                                        border-radius: 4px; color: #888;">
-                                <i class="fas fa-info-circle"></i> PAT must be set as AZURE_DEVOPS_PAT environment variable on the server
+                            <div style="position: relative;">
+                                <input type="password" id="patToken" placeholder="Enter PAT token (stored securely)" 
+                                       style="width: 100%; padding: 10px; background: #2a2a2a; border: 1px solid #444; 
+                                              border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                <span id="patTokenStatus" style="position: absolute; right: 10px; top: 12px; font-size: 12px;"></span>
                             </div>
                             <small style="color: #888;">Create a PAT with Work Items (Read, Write) and Project (Read) scopes</small>
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                <i class="fas fa-lock"></i> Your PAT will be encrypted and stored securely
+                            </small>
                         </div>
                         
                         <div style="display: flex; gap: 10px;">
@@ -4843,9 +4856,12 @@ steps:
                                         
                                         <div style="margin-bottom: 15px;">
                                             <label style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">API Key</label>
-                                            <input type="password" id="openai-api-key" placeholder="sk-..." 
-                                                   style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
-                                                          border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="password" id="openai-api-key" placeholder="sk-..." 
+                                                       style="flex: 1; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
+                                                              border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                                <span id="openai-api-key-status" style="color: #4CAF50; font-size: 14px; display: none;"></span>
+                                            </div>
                                         </div>
                                         
                                         <div style="margin-bottom: 10px;">
@@ -4959,6 +4975,13 @@ steps:
                                         </div>
                                         
                                         </div>
+                                        
+                                        <!-- Provider action buttons -->
+                                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                            <button class="save-btn" onclick="saveProviderSettings('openai')">Save Provider</button>
+                                            <button class="btn-secondary" onclick="testProviderConnection('openai')">Test Connection</button>
+                                        </div>
+                                        <div id="openai-provider-message" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -4992,9 +5015,12 @@ steps:
                                         
                                         <div style="margin-bottom: 15px;">
                                             <label style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">API Key</label>
-                                            <input type="password" id="anthropic-api-key" placeholder="sk-ant-..." 
-                                                   style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
-                                                          border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="password" id="anthropic-api-key" placeholder="sk-ant-..." 
+                                                       style="flex: 1; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
+                                                              border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                                <span id="anthropic-api-key-status" style="color: #4CAF50; font-size: 14px; display: none;"></span>
+                                            </div>
                                         </div>
                                         
                                         <div style="margin-bottom: 10px;">
@@ -5107,6 +5133,13 @@ steps:
                                         </div>
                                         
                                         </div>
+                                        
+                                        <!-- Provider action buttons -->
+                                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                            <button class="save-btn" onclick="saveProviderSettings('anthropic')">Save Provider</button>
+                                            <button class="btn-secondary" onclick="testProviderConnection('anthropic')">Test Connection</button>
+                                        </div>
+                                        <div id="anthropic-provider-message" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -5140,9 +5173,12 @@ steps:
                                         
                                         <div style="margin-bottom: 15px;">
                                             <label style="display: block; margin-bottom: 5px; color: #ccc; font-size: 14px;">API Key</label>
-                                            <input type="password" id="gemini-api-key" placeholder="AI..." 
-                                                   style="width: 100%; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
-                                                          border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <input type="password" id="gemini-api-key" placeholder="AI..." 
+                                                       style="flex: 1; padding: 8px; background: #1a1a1a; border: 1px solid #444; 
+                                                              border-radius: 4px; color: #e0e0e0; font-size: 14px;">
+                                                <span id="gemini-api-key-status" style="color: #4CAF50; font-size: 14px; display: none;"></span>
+                                            </div>
                                         </div>
                                         
                                         <div style="margin-bottom: 10px;">
@@ -5212,6 +5248,13 @@ steps:
                                         </div>
                                         
                                         </div>
+                                        
+                                        <!-- Provider action buttons -->
+                                        <div style="margin-top: 20px; display: flex; gap: 10px;">
+                                            <button class="save-btn" onclick="saveProviderSettings('gemini')">Save Provider</button>
+                                            <button class="btn-secondary" onclick="testProviderConnection('gemini')">Test Connection</button>
+                                        </div>
+                                        <div id="gemini-provider-message" style="margin-top: 10px; padding: 10px; border-radius: 4px; display: none;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -5220,10 +5263,13 @@ steps:
 
                         </div>
 
+                        <!-- Removed global save button - each provider now has its own Save/Test buttons -->
+                        <!--
                         <div style="margin-top: 20px; display: flex; gap: 10px;">
                             <button id="saveAgentsSettingsBtn" class="save-btn" onclick="saveAgentsSettings()">Save Agent Configuration</button>
                             <button class="btn-secondary" onclick="testSelectedModels()">Test Selected Models</button>
                         </div>
+                        -->
 
                         <div id="agentsSettingsMessage" style="margin-top: 15px; padding: 10px; border-radius: 4px; display: none;"></div>
                     </div>
@@ -5292,6 +5338,12 @@ steps:
             };
             
             orgUrlInput.addEventListener('input', window.trackAzureSettingsChanges);
+            
+            // Add listener for PAT token input
+            const patTokenInput = document.getElementById('patToken');
+            if (patTokenInput) {
+                patTokenInput.addEventListener('input', window.trackAzureSettingsChanges);
+            }
             
             // Add listeners for log retention settings
             const systemLogRetentionInput = document.getElementById('systemLogRetentionDays');
@@ -5381,13 +5433,28 @@ steps:
                         }
                     }
                     
-                    // If we have settings with both org URL and PAT, automatically test connection to load projects
+                    // Handle PAT status display
+                    const patInput = document.getElementById('patToken');
+                    const patStatus = document.getElementById('patTokenStatus');
                     if (settings.hasPatToken) {
+                        patInput.placeholder = 'PAT token saved (enter new value to change)';
+                        patInput.value = ''; // Never show the actual token
+                        if (patStatus) {
+                            patStatus.innerHTML = '<span style="color: #4CAF50;">&#10003; Saved</span>';
+                            if (settings.patTokenHint) {
+                                patStatus.innerHTML += ` <span style="color: #888;">${settings.patTokenHint}</span>`;
+                            }
+                        }
+                        
                         // Show a loading message
                         showSettingsMessage('Loading project configuration...', 'info');
                         
                         // Delay slightly to ensure DOM is ready
                         setTimeout(() => testConnection(true), 100);
+                    } else {
+                        if (patStatus) {
+                            patStatus.innerHTML = '<span style="color: #f59e0b;">Not configured</span>';
+                        }
                     }
                 }
                 
@@ -5481,6 +5548,8 @@ steps:
         
         async function saveSettings() {
             const orgUrl = document.getElementById('orgUrl').value.trim();
+            const patTokenInput = document.getElementById('patToken');
+            let patToken = patTokenInput ? patTokenInput.value.trim() : '';
             
             if (!orgUrl) {
                 showSettingsMessage('Please enter the Organization URL', 'error');
@@ -5490,6 +5559,11 @@ steps:
             try {
                 // Prepare data
                 const data = { orgUrl };
+                
+                // Add PAT token if provided
+                if (patToken) {
+                    data.patToken = patToken;
+                }
                 
                 // Add log retention settings
                 const systemLogRetention = document.getElementById('systemLogRetentionDays');
@@ -5509,7 +5583,22 @@ steps:
                 });
                 
                 if (response.status === 'success') {
-                    // Also save to localStorage as backup
+                    // Clear PAT from memory immediately
+                    if (patToken) {
+                        patTokenInput.value = '';
+                        // Overwrite the variable to clear from memory
+                        patToken = Array(patToken.length + 1).join('*');
+                        patToken = null;
+                        
+                        // Update PAT status display
+                        const patStatus = document.getElementById('patTokenStatus');
+                        if (patStatus) {
+                            patStatus.innerHTML = '<span style="color: #4CAF50;">&#10003; Saved</span>';
+                        }
+                        patTokenInput.placeholder = 'PAT token saved (enter new value to change)';
+                    }
+                    
+                    // Also save to localStorage as backup (without PAT)
                     const storageData = { orgUrl };
                     localStorage.setItem('azureDevOpsSettings', JSON.stringify(storageData));
                     showSettingsMessage(response.message || 'Settings saved successfully!', 'success');
@@ -6880,7 +6969,7 @@ ${type.prompt || ''}
                                 <div style="padding: 20px;">
                                     <div style="display: flex; align-items: center; gap: 20px; margin-bottom: 20px;">
                                         <span class="persona-workflow-status" id="persona-workflow-status">
-                                            <span style="color: #10b981;">✓</span> Loaded
+                                            <span style="color: #10b981;">&#10003;</span> Loaded
                                         </span>
                                     </div>
                                     
@@ -9553,13 +9642,13 @@ Provide comprehensive technical solutions and architectural guidance.`
                     const workflow = response.workflow;
                     document.getElementById('persona-workflow-yaml').value = workflow.yaml;
                     document.getElementById('persona-workflow-count').textContent = `Version ${workflow.version}`;
-                    document.getElementById('persona-workflow-status').innerHTML = '<span style="color: #10b981;">✓</span> Loaded';
+                    document.getElementById('persona-workflow-status').innerHTML = '<span style="color: #10b981;">&#10003;</span> Loaded';
                 } else {
                     throw new Error('Failed to load workflow');
                 }
             } catch (error) {
                 console.error('Failed to load persona workflow:', error);
-                document.getElementById('persona-workflow-status').innerHTML = '<span style="color: #ef4444;">✗</span> Failed to load';
+                document.getElementById('persona-workflow-status').innerHTML = '<span style="color: #ef4444;">&#10007;</span> Failed to load';
                 showNotification('Failed to load workflow', 'error');
             }
         }
@@ -9575,9 +9664,9 @@ Provide comprehensive technical solutions and architectural guidance.`
                 
                 const resultDiv = document.getElementById('persona-workflow-validation-result');
                 if (response && response.success) {
-                    resultDiv.innerHTML = '<div style="color: #10b981; margin-top: 10px;">✓ Workflow is valid</div>';
+                    resultDiv.innerHTML = '<div style="color: #10b981; margin-top: 10px;">&#10003; Workflow is valid</div>';
                 } else {
-                    resultDiv.innerHTML = `<div style="color: #ef4444; margin-top: 10px;">✗ Validation failed: ${response.error || 'Unknown error'}</div>`;
+                    resultDiv.innerHTML = `<div style="color: #ef4444; margin-top: 10px;">&#10007; Validation failed: ${response.error || 'Unknown error'}</div>`;
                 }
             } catch (error) {
                 console.error('Validation error:', error);
@@ -10400,7 +10489,7 @@ Provide comprehensive technical solutions and architectural guidance.`
         // Agent Configuration Functions
         async function refreshProvider(providerId) {
             const apiKeyInput = document.getElementById(`${providerId}-api-key`);
-            const apiKey = apiKeyInput.value.trim();
+            let apiKey = apiKeyInput.value.trim();
             
             // Check if we have a saved API key or a new one
             const savedConfig = JSON.parse(localStorage.getItem('agentConfiguration') || '{}');
@@ -10412,6 +10501,14 @@ Provide comprehensive technical solutions and architectural guidance.`
             }
             
             showMessage('agentsSettingsMessage', `Checking for new ${providerId} models...`, 'info');
+            
+            // Clear the API key from the input immediately after reading
+            if (apiKey) {
+                apiKeyInput.value = '';
+                // Overwrite the variable
+                apiKey = Array(apiKey.length + 1).join('*');
+                apiKey = null;
+            }
             
             // Simulate API call - in production, this would call the actual API
             setTimeout(() => {
@@ -10465,7 +10562,313 @@ Provide comprehensive technical solutions and architectural guidance.`
             }
         }
 
-        // Save configuration
+        // Save individual provider
+        async function saveProviderSettings(providerId) {
+            const providers = {};
+            
+            // Get existing saved configuration to preserve other providers
+            const existingConfig = JSON.parse(localStorage.getItem('agentConfiguration') || '{}');
+            
+            const checkbox = document.getElementById(`provider-${providerId}`);
+            if (!checkbox || !checkbox.checked) {
+                showProviderMessage(providerId, 'Please enable the provider first', 'warning');
+                return;
+            }
+            
+            const apiKeyInput = document.getElementById(`${providerId}-api-key`);
+            const apiKey = apiKeyInput.value.trim();
+            const selectedModels = [];
+            
+            // Get all checked models for this provider
+            const modelCheckboxes = document.querySelectorAll(`#${providerId}-models input[type="checkbox"]:checked`);
+            modelCheckboxes.forEach(cb => {
+                if (cb.value) {
+                    selectedModels.push(cb.value);
+                }
+            });
+            
+            // Determine if we have a valid API key
+            let hasApiKey = false;
+            let actualApiKey = '';
+            
+            if (apiKey) {
+                // User entered a new API key
+                hasApiKey = true;
+                actualApiKey = apiKey;
+            }
+            
+            // If no new API key entered, don't validate - let backend handle existing keys
+            // This prevents issues with stale localStorage data
+            
+            if (selectedModels.length === 0) {
+                showProviderMessage(providerId, 'Please select at least one model', 'warning');
+                return;
+            }
+            
+            // Build provider data
+            const providerData = {
+                enabled: true,
+                hasApiKey: true,
+                models: selectedModels
+            };
+            
+            // Only include API key if newly entered
+            if (apiKey) {
+                providerData.apiKey = actualApiKey;
+                providerData.apiKeyHint = actualApiKey.length > 4 ? '****' + actualApiKey.slice(-4) : '****';
+            }
+            
+            providers[providerId] = providerData;
+            
+            // Save to backend
+            try {
+                const customProviders = JSON.parse(localStorage.getItem('customProviders') || '[]');
+                const requestData = {
+                    providers: { ...existingConfig, ...providers },
+                    customProviders: customProviders,
+                    updated_at: new Date().toISOString()
+                };
+                
+                const response = await fetchAPI('/api/settings/agents', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (response && response.status === 'success') {
+                    // Update status display
+                    if (response.data && response.data.providers && response.data.providers[providerId]) {
+                        const providerData = response.data.providers[providerId];
+                        const statusSpan = document.getElementById(`${providerId}-api-key-status`);
+                        
+                        if (statusSpan && providerData.apiKeyHint) {
+                            statusSpan.innerHTML = `&#10003; Saved ${providerData.apiKeyHint}`;
+                            statusSpan.style.display = 'inline';
+                        }
+                    }
+                    
+                    // Clear API key input
+                    if (apiKey) {
+                        apiKeyInput.value = '';
+                        apiKeyInput.placeholder = 'API key saved (enter new value to change)';
+                        
+                        // Clean up any old indicators
+                        const parentDiv = apiKeyInput.parentElement;
+                        const oldIndicator = parentDiv.querySelector('.api-key-saved-indicator');
+                        if (oldIndicator) {
+                            oldIndicator.remove();
+                        }
+                    }
+                    
+                    // Update localStorage cache
+                    const sanitizedProvider = {
+                        ...providerData,
+                        apiKey: undefined,
+                        hasApiKey: true
+                    };
+                    existingConfig[providerId] = sanitizedProvider;
+                    localStorage.setItem('agentConfiguration', JSON.stringify(existingConfig));
+                    
+                    // Reset change tracking
+                    resetProviderChangeState(providerId);
+                    
+                    showProviderMessage(providerId, 'Provider saved successfully!', 'success');
+                } else {
+                    throw new Error(response?.message || 'Failed to save provider');
+                }
+                
+            } catch (error) {
+                console.error('Error saving provider:', error);
+                showProviderMessage(providerId, `Failed to save: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test provider connection
+        async function testProviderConnection(providerId) {
+            // Check if provider is enabled
+            const checkbox = document.getElementById(`provider-${providerId}`);
+            if (!checkbox || !checkbox.checked) {
+                showProviderMessage(providerId, 'Please enable the provider first', 'warning');
+                return;
+            }
+            
+            // Check if API key exists
+            const apiKeyInput = document.getElementById(`${providerId}-api-key`);
+            const hasNewKey = apiKeyInput.value.trim() !== '';
+            
+            // Note: We don't check localStorage for existing keys because the backend
+            // should have them in the database. We only send new keys entered by the user.
+            
+            // Let the backend handle checking for existing keys
+            // If no new key is entered, the backend will try to use the saved key
+            
+            showProviderMessage(providerId, 'Testing connection...', 'info');
+            
+            try {
+                const response = await fetchAPI(`/api/test-connection/${providerId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        apiKey: apiKeyInput.value.trim() || undefined // Only send if new key
+                    })
+                });
+                
+                if (response && response.status === 'success') {
+                    showProviderMessage(providerId, response.message || 'Connection successful!', 'success');
+                } else {
+                    throw new Error(response?.message || 'Connection failed');
+                }
+            } catch (error) {
+                console.error(`Error testing ${providerId} connection:`, error);
+                showProviderMessage(providerId, `Connection test failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Track provider changes
+        const providerChanges = {
+            openai: { apiKeyChanged: false, modelsChanged: false, enabledChanged: false },
+            anthropic: { apiKeyChanged: false, modelsChanged: false, enabledChanged: false },
+            gemini: { apiKeyChanged: false, modelsChanged: false, enabledChanged: false }
+        };
+        
+        // Track original provider states
+        const originalProviderStates = {};
+        
+        // Initialize change tracking for providers
+        function initializeProviderChangeTracking() {
+            // Get current states from backend
+            fetchAPI('/api/settings/agents', { method: 'GET' }).then(response => {
+                if (response && response.providers) {
+                    // Store original states
+                    for (const providerId in response.providers) {
+                        originalProviderStates[providerId] = {
+                            enabled: response.providers[providerId].enabled || false,
+                            models: [...(response.providers[providerId].models || [])],
+                            hasApiKey: response.providers[providerId].hasApiKey || false
+                        };
+                    }
+                }
+            });
+            
+            // Add event listeners for OpenAI
+            const openaiApiKey = document.getElementById('openai-api-key');
+            if (openaiApiKey) {
+                openaiApiKey.addEventListener('input', () => {
+                    updateProviderChangeState('openai', 'apiKey', true);
+                });
+            }
+            
+            // Add event listeners for Anthropic
+            const anthropicApiKey = document.getElementById('anthropic-api-key');
+            if (anthropicApiKey) {
+                anthropicApiKey.addEventListener('input', () => {
+                    updateProviderChangeState('anthropic', 'apiKey', true);
+                });
+            }
+            
+            // Add event listeners for Gemini
+            const geminiApiKey = document.getElementById('gemini-api-key');
+            if (geminiApiKey) {
+                geminiApiKey.addEventListener('input', () => {
+                    updateProviderChangeState('gemini', 'apiKey', true);
+                });
+            }
+            
+            // Add listeners for provider enable/disable checkboxes
+            ['openai', 'anthropic', 'gemini'].forEach(providerId => {
+                const checkbox = document.getElementById(`provider-${providerId}`);
+                if (checkbox) {
+                    checkbox.addEventListener('change', () => {
+                        updateProviderChangeState(providerId, 'enabled', true);
+                    });
+                }
+                
+                // Add listeners for model checkboxes
+                const modelContainer = document.getElementById(`${providerId}-models`);
+                if (modelContainer) {
+                    modelContainer.addEventListener('change', (e) => {
+                        if (e.target.type === 'checkbox') {
+                            updateProviderChangeState(providerId, 'models', true);
+                        }
+                    });
+                }
+            });
+        }
+        
+        // Update provider change state and button appearances
+        function updateProviderChangeState(providerId, changeType, hasChanged) {
+            if (changeType === 'apiKey') {
+                providerChanges[providerId].apiKeyChanged = hasChanged;
+                // Update test connection button
+                const testBtn = document.querySelector(`button[onclick="testProviderConnection('${providerId}')"]`);
+                if (testBtn) {
+                    if (hasChanged) {
+                        testBtn.classList.add('has-changes');
+                    } else {
+                        testBtn.classList.remove('has-changes');
+                    }
+                }
+            } else if (changeType === 'models') {
+                providerChanges[providerId].modelsChanged = hasChanged;
+            } else if (changeType === 'enabled') {
+                providerChanges[providerId].enabledChanged = hasChanged;
+            }
+            
+            // Update save button
+            const saveBtn = document.querySelector(`button[onclick="saveProviderSettings('${providerId}')"]`);
+            if (saveBtn) {
+                const hasAnyChanges = providerChanges[providerId].apiKeyChanged || 
+                                    providerChanges[providerId].modelsChanged || 
+                                    providerChanges[providerId].enabledChanged;
+                if (hasAnyChanges) {
+                    saveBtn.classList.add('has-changes');
+                } else {
+                    saveBtn.classList.remove('has-changes');
+                }
+            }
+        }
+        
+        // Reset change state after save
+        function resetProviderChangeState(providerId) {
+            providerChanges[providerId] = { apiKeyChanged: false, modelsChanged: false, enabledChanged: false };
+            
+            // Reset button states
+            const saveBtn = document.querySelector(`button[onclick="saveProviderSettings('${providerId}')"]`);
+            if (saveBtn) {
+                saveBtn.classList.remove('has-changes');
+            }
+            
+            const testBtn = document.querySelector(`button[onclick="testProviderConnection('${providerId}')"]`);
+            if (testBtn) {
+                testBtn.classList.remove('has-changes');
+            }
+        }
+        
+        // Show message for a specific provider
+        function showProviderMessage(providerId, message, type) {
+            const messageEl = document.getElementById(`${providerId}-provider-message`);
+            if (messageEl) {
+                messageEl.textContent = message;
+                messageEl.style.display = 'block';
+                messageEl.style.backgroundColor = type === 'success' ? '#065f46' : 
+                                                   type === 'error' ? '#7f1d1d' : 
+                                                   type === 'warning' ? '#78350f' : '#1e40af';
+                messageEl.style.color = '#e0e0e0';
+                
+                // Auto-hide success messages
+                if (type === 'success') {
+                    setTimeout(() => {
+                        messageEl.style.display = 'none';
+                    }, 5000);  // Increased to 5 seconds
+                }
+            }
+        }
+
+        // Save configuration (original function for backward compatibility)
         async function saveAgentsSettings() {
             const providers = {};
             
@@ -10504,9 +10907,9 @@ Provide comprehensive technical solutions and architectural guidance.`
                         hasApiKey = true;
                         actualApiKey = apiKey;
                     } else if (existingConfig[providerId] && existingConfig[providerId].hasApiKey) {
-                        // Use existing saved API key
+                        // Use existing saved API key (don't retrieve it - backend handles this)
                         hasApiKey = true;
-                        actualApiKey = existingConfig[providerId].apiKey;
+                        // Don't set actualApiKey from existingConfig - let backend handle decryption
                     }
                     
                     // Collect issues instead of returning early
@@ -10516,27 +10919,30 @@ Provide comprehensive technical solutions and architectural guidance.`
                         issues.push(`${providerId}: No models selected`);
                     } else {
                         // Valid configuration
-                        providers[providerId] = {
+                        const providerData = {
                             enabled: true,
                             hasApiKey: true,
-                            apiKey: actualApiKey, // Store encrypted in production
-                            apiKeyHint: actualApiKey.length > 4 ? '****' + actualApiKey.slice(-4) : '****',
                             models: selectedModels
                         };
                         
+                        // Only include API key if newly entered
+                        if (apiKey) {
+                            providerData.apiKey = actualApiKey;
+                            // Generate hint before clearing
+                            providerData.apiKeyHint = actualApiKey.length > 4 ? '****' + actualApiKey.slice(-4) : '****';
+                        }
+                        
+                        providers[providerId] = providerData;
+                        
                         // Clear the input and update placeholder only for successfully saved providers
                         if (apiKey) {
+                            // Clear input immediately
                             apiKeyInput.value = '';
+                            // Overwrite the variable to clear from memory
+                            actualApiKey = Array(actualApiKey.length + 1).join('*');
+                            actualApiKey = null;
+                            
                             apiKeyInput.placeholder = 'API key saved (enter new value to change)';
-                            // Add visual indicator
-                            const parentDiv = apiKeyInput.parentElement;
-                            if (!parentDiv.querySelector('.api-key-saved-indicator')) {
-                                const indicator = document.createElement('span');
-                                indicator.className = 'api-key-saved-indicator';
-                                indicator.innerHTML = '&#10003; Saved';
-                                indicator.style.cssText = 'color: #4CAF50; margin-left: 10px; font-size: 14px;';
-                                parentDiv.appendChild(indicator);
-                            }
                         }
                     }
                 }
@@ -10550,25 +10956,99 @@ Provide comprehensive technical solutions and architectural guidance.`
             
             // Save all valid providers to backend
             try {
+                // Create a copy for the API request
+                const requestData = {
+                    providers: { ...existingConfig, ...providers },
+                    customProviders: customProviders,
+                    updated_at: new Date().toISOString()
+                };
+                
                 const response = await fetchAPI('/api/settings/agents', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({
-                        providers: { ...existingConfig, ...providers },
-                        customProviders: customProviders,
-                        updated_at: new Date().toISOString()
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
                 if (response && response.status === 'success') {
-                    // Keep localStorage as cache
-                    localStorage.setItem('agentConfiguration', JSON.stringify({ ...existingConfig, ...providers }));
+                    // Create a sanitized version for localStorage (without API keys)
+                    const sanitizedProviders = {};
+                    // Process providers that were sent in this request
+                    Object.keys(providers).forEach(providerId => {
+                        sanitizedProviders[providerId] = {
+                            ...providers[providerId],
+                            apiKey: undefined, // Remove API key
+                            hasApiKey: providers[providerId].hasApiKey
+                        };
+                    });
+                    
+                    // Update status display for ALL providers based on response
+                    // This includes providers that were already saved and not changed
+                    if (response.data && response.data.providers) {
+                        Object.keys(response.data.providers).forEach(providerId => {
+                            const statusSpan = document.getElementById(`${providerId}-api-key-status`);
+                            const providerData = response.data.providers[providerId];
+                            
+                            if (statusSpan && providerData.apiKeyHint) {
+                                statusSpan.innerHTML = `&#10003; Saved ${providerData.apiKeyHint}`;
+                                statusSpan.style.display = 'inline';
+                            }
+                        });
+                    }
+                    
+                    // Also update status for providers we just saved
+                    Object.keys(providers).forEach(providerId => {
+                        if (providers[providerId].hasApiKey && providers[providerId].apiKey) {
+                            const statusSpan = document.getElementById(`${providerId}-api-key-status`);
+                            if (statusSpan && !response.data?.providers?.[providerId]) {
+                                // Fallback if not in response
+                                const hint = '****' + providers[providerId].apiKey.slice(-4);
+                                statusSpan.innerHTML = `&#10003; Saved ${hint}`;
+                                statusSpan.style.display = 'inline';
+                            }
+                        }
+                    });
+                    
+                    // Keep localStorage as cache but without API keys
+                    localStorage.setItem('agentConfiguration', JSON.stringify({ ...existingConfig, ...sanitizedProviders }));
                     showMessage('agentsSettingsMessage', 'Agent configuration saved successfully!', 'success');
                 } else {
                     throw new Error(response?.message || 'Failed to save agent settings');
                 }
+                
+                // Clear sensitive data from memory
+                Object.keys(providers).forEach(providerId => {
+                    if (providers[providerId].apiKey) {
+                        // Overwrite the API key in memory
+                        providers[providerId].apiKey = Array(providers[providerId].apiKey.length + 1).join('*');
+                        providers[providerId].apiKey = null;
+                    }
+                });
+                // Clear the requestData object
+                if (requestData && requestData.providers) {
+                    Object.keys(requestData.providers).forEach(providerId => {
+                        if (requestData.providers[providerId].apiKey) {
+                            requestData.providers[providerId].apiKey = null;
+                        }
+                    });
+                }
+                
+                // Clear API key input fields for security
+                providerIds.forEach(providerId => {
+                    const apiKeyInput = document.getElementById(`${providerId}-api-key`);
+                    if (apiKeyInput && apiKeyInput.value) {
+                        apiKeyInput.value = '';
+                        
+                        // Remove any old saved indicators
+                        const parentDiv = apiKeyInput.parentElement;
+                        const oldIndicator = parentDiv.querySelector('.api-key-saved-indicator');
+                        if (oldIndicator) {
+                            oldIndicator.remove();
+                        }
+                    }
+                });
+                
             } catch (error) {
                 console.error('Error saving agent settings:', error);
                 showMessage('agentsSettingsMessage', `Failed to save: ${error.message}`, 'error');
@@ -10713,6 +11193,20 @@ Provide comprehensive technical solutions and architectural guidance.`
                                 const apiKeyInput = document.getElementById(`${providerId}-api-key`);
                                 if (apiKeyInput && config.hasApiKey) {
                                     apiKeyInput.placeholder = 'API key saved (enter new value to change)';
+                                    
+                                    // Show API key status
+                                    const statusSpan = document.getElementById(`${providerId}-api-key-status`);
+                                    if (statusSpan && config.apiKeyHint) {
+                                        statusSpan.innerHTML = `&#10003; Saved ${config.apiKeyHint}`;
+                                        statusSpan.style.display = 'inline';
+                                    }
+                                    
+                                    // Clean up any old indicators
+                                    const parentDiv = apiKeyInput.parentElement;
+                                    const oldIndicator = parentDiv.querySelector('.api-key-saved-indicator');
+                                    if (oldIndicator) {
+                                        oldIndicator.remove();
+                                    }
                                 }
                                 
                                 // Check the selected models
@@ -10756,14 +11250,18 @@ Provide comprehensive technical solutions and architectural guidance.`
                         apiKeyInput.placeholder = 'API key saved (enter new value to change)';
                         apiKeyInput.value = ''; // Clear any existing value
                         
-                        // Add visual indicator that API key is saved
+                        // Show API key status using the new status span
+                        const statusSpan = document.getElementById(`${providerId}-api-key-status`);
+                        if (statusSpan) {
+                            statusSpan.innerHTML = `&#10003; Saved ${providerConfig.apiKeyHint || '****'}`;
+                            statusSpan.style.display = 'inline';
+                        }
+                        
+                        // Clean up any old indicators
                         const parentDiv = apiKeyInput.parentElement;
-                        if (!parentDiv.querySelector('.api-key-saved-indicator')) {
-                            const indicator = document.createElement('span');
-                            indicator.className = 'api-key-saved-indicator';
-                            indicator.innerHTML = '&#10003; Saved';
-                            indicator.style.cssText = 'color: #4CAF50; margin-left: 10px; font-size: 14px;';
-                            parentDiv.appendChild(indicator);
+                        const oldIndicator = parentDiv.querySelector('.api-key-saved-indicator');
+                        if (oldIndicator) {
+                            oldIndicator.remove();
                         }
                     }
                     
@@ -10794,6 +11292,11 @@ Provide comprehensive technical solutions and architectural guidance.`
                         trackAgentsSettingsChanges();
                         // Remove saved indicator when user starts typing
                         const indicator = this.parentElement.querySelector('.api-key-saved-indicator');
+                        // Also hide the new status span
+                        const statusSpan = document.getElementById(`${provider}-api-key-status`);
+                        if (statusSpan) {
+                            statusSpan.style.display = 'none';
+                        }
                         if (indicator) {
                             indicator.remove();
                         }
@@ -11312,6 +11815,9 @@ ${data.prompt}
             
             // Load system prompt if on system tab
             loadSystemPrompt();
+            
+            // Initialize provider change tracking
+            initializeProviderChangeTracking();
         });
         
         // Edit Persona Instance functionality

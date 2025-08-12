@@ -1,8 +1,8 @@
 {
   "orgUrl": "https://dev.azure.com/data6",
-  "systemLogRetentionDays": 7,
-  "personaLogRetentionDays": 7,
-  "savedAt": "2025-08-06T01:33:22.635877",
+  "systemLogRetentionDays": 3,
+  "personaLogRetentionDays": 3,
+  "savedAt": "2025-08-12T03:45:35.571425",
   "enabledProjects": [],
   "enabledProjectDetails": [],
   "configUpdatedAt": "2025-08-08T01:39:33.660407"
