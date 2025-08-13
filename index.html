@@ -1436,6 +1436,7 @@
         let selectedPersona = null;
         let factoryRunning = false;
         let apiRunning = false;
+        let azureDevOpsConfigured = true; // Assume configured until we know otherwise
         const API_BASE = 'http://localhost:8080';
         
         // Unsaved changes tracking for persona type edit
@@ -1847,31 +1848,52 @@
                     let workQueueCount = 0;
                     let completedCount = 0;
                     
-                    try {
-                        const azureWorkQueue = await fetchAPI('/api/work-queue-azure');
-                        workQueueCount = azureWorkQueue.total || 0;
-                        document.getElementById('headerWorkQueue').textContent = workQueueCount;
+                    // Only try to fetch Azure data if it's configured
+                    if (azureDevOpsConfigured) {
+                        try {
+                            const azureWorkQueue = await fetchAPI('/api/work-queue-azure');
+                            workQueueCount = azureWorkQueue.total || 0;
+                            document.getElementById('headerWorkQueue').textContent = workQueueCount;
+                            
+                            // Store the Azure work queue data for later use
+                            window.azureWorkQueueData = azureWorkQueue;
+                        } catch (e) {
+                            // Check if it's a configuration error
+                            if (e.message.includes('Azure DevOps not configured') || e.message.includes('400')) {
+                                azureDevOpsConfigured = false;
+                                console.log('Azure DevOps not configured, disabling Azure data fetching');
+                            } else {
+                                console.error('Failed to fetch Azure work queue:', e);
+                            }
+                            // Fall back to local queue size
+                            workQueueCount = status.work_queue_size;
+                            document.getElementById('headerWorkQueue').textContent = workQueueCount;
+                        }
                         
-                        // Store the Azure work queue data for later use
-                        window.azureWorkQueueData = azureWorkQueue;
-                    } catch (e) {
-                        console.error('Failed to fetch Azure work queue:', e);
-                        // Fall back to local queue size
+                        try {
+                            const azureCompletedItems = await fetchAPI('/api/completed-items-azure');
+                            completedCount = azureCompletedItems.total || 0;
+                            document.getElementById('headerCompleted').textContent = completedCount;
+                            
+                            // Store the Azure completed items data for later use
+                            window.azureCompletedItemsData = azureCompletedItems;
+                        } catch (e) {
+                            // Check if it's a configuration error
+                            if (e.message.includes('Azure DevOps not configured') || e.message.includes('400')) {
+                                azureDevOpsConfigured = false;
+                                console.log('Azure DevOps not configured, disabling Azure data fetching');
+                            } else {
+                                console.error('Failed to fetch Azure completed items:', e);
+                            }
+                            // Fall back to local completed items
+                            completedCount = status.completed_items;
+                            document.getElementById('headerCompleted').textContent = completedCount;
+                        }
+                    } else {
+                        // Use local data when Azure is not configured
                         workQueueCount = status.work_queue_size;
-                        document.getElementById('headerWorkQueue').textContent = workQueueCount;
-                    }
-                    
-                    try {
-                        const azureCompletedItems = await fetchAPI('/api/completed-items-azure');
-                        completedCount = azureCompletedItems.total || 0;
-                        document.getElementById('headerCompleted').textContent = completedCount;
-                        
-                        // Store the Azure completed items data for later use
-                        window.azureCompletedItemsData = azureCompletedItems;
-                    } catch (e) {
-                        console.error('Failed to fetch Azure completed items:', e);
-                        // Fall back to local completed items
                         completedCount = status.completed_items;
+                        document.getElementById('headerWorkQueue').textContent = workQueueCount;
                         document.getElementById('headerCompleted').textContent = completedCount;
                     }
                     
@@ -5598,6 +5620,9 @@ steps:
                 });
                 
                 if (response.status === 'success') {
+                    // Re-enable Azure DevOps checking
+                    azureDevOpsConfigured = true;
+                    
                     // Clear PAT from memory immediately
                     if (patToken) {
                         patTokenInput.value = '';
