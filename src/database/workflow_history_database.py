@@ -237,7 +237,7 @@ class WorkflowHistoryDatabase:
             
             export_data = {
                 'workflow_id': current['workflow_id'],
-                'current_definition': current['definition'],
+                'current_definition': current['yaml_content'],
                 'current_version': current['version'],
                 'last_updated': current['created_at'],
                 'updated_by': current['created_by']
@@ -263,11 +263,11 @@ class WorkflowHistoryDatabase:
         if 'workflow_id' not in import_data or 'current_definition' not in import_data:
             raise ValueError("Invalid import data: missing required fields")
         
-        return self.save_workflow(
+        return self.add_workflow_version(
             import_data['workflow_id'],
             import_data['current_definition'],
-            created_by,
-            'Imported from external source'
+            'Imported from external source',
+            created_by
         )
     
     def export_all_workflows(self, include_history: bool = True) -> Dict[str, Any]:
