@@ -678,8 +678,23 @@ class RealFactoryAPI:
             os.environ['AZURE_DEVOPS_ORG'] = org_url
             self._initialize_azure_client()
             
+            # Get PAT hint for response
+            pat_hint = ''
+            if pat_token:
+                # Generate hint from the provided token
+                pat_hint = f"****{pat_token[-4:]}" if len(pat_token) > 4 else "****"
+            else:
+                # Get hint from stored credential
+                pat_info = self.settings_db.get_credential_info('azure_devops_pat')
+                if pat_info:
+                    pat_hint = pat_info.get('hint', '')
+            
             self.log_event("success", "Azure DevOps settings updated")
-            return web.json_response({'status': 'success', 'message': 'Settings saved successfully'})
+            return web.json_response({
+                'status': 'success', 
+                'message': 'Settings saved successfully',
+                'patTokenHint': pat_hint
+            })
             
         except Exception as e:
             self.log_event("error", f"Failed to save settings: {str(e)}")
@@ -705,7 +720,14 @@ class RealFactoryAPI:
                 return web.json_response({'error': 'No PAT token available. Please configure one in settings.'}, status=400)
                 
             # Create temporary client to test connection
-            test_client = AzureDevOpsClient(org_url, pat_token)
+            # Extract organization name from URL for the client
+            org_name = org_url
+            if org_url.startswith('https://'):
+                # Extract from URL like https://dev.azure.com/myorg
+                parts = org_url.rstrip('/').split('/')
+                org_name = parts[-1]
+            
+            test_client = AzureDevOpsClient(org_name, pat_token)
             
             # Try to get projects list as connection test
             projects = await test_client.get_projects()

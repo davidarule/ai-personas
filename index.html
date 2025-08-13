@@ -5634,6 +5634,10 @@ steps:
                         const patStatus = document.getElementById('patTokenStatus');
                         if (patStatus) {
                             patStatus.innerHTML = '<span style="color: #4CAF50;">&#10003; Saved</span>';
+                            // Add hint if provided in response
+                            if (response.patTokenHint) {
+                                patStatus.innerHTML += ` <span style="color: #888;">${response.patTokenHint}</span>`;
+                            }
                         }
                         patTokenInput.placeholder = 'PAT token saved (enter new value to change)';
                     }
